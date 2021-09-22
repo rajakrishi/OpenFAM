@@ -246,6 +246,7 @@ class Fam_CIS {
      * @param srcOffset - offset of source dataitem
      * @param srcCopyStart - start position in source dataitem
      * @param srcKey - source dataitem key
+     * @param srcBaseAddr - source Base Address
      * @param srcAddr - source memory server address
      * @param srcAddrLen - source memory server address size
      * @param destRegionId - region Id of destination dataitem
@@ -258,7 +259,7 @@ class Fam_CIS {
      * @param gid - gid of user
      **/
     virtual void *copy(uint64_t srcRegionId, uint64_t srcOffset,
-                       uint64_t srcCopyStart, uint64_t srcKey,
+                       uint64_t srcCopyStart, uint64_t srcKey, uint64_t srcBaseAddr,
                        const char *srcAddr, uint32_t srcAddrLen,
                        uint64_t destRegionId, uint64_t destOffset,
                        uint64_t destCopyStar, uint64_t nbytes,

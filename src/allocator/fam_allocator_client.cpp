@@ -291,6 +291,7 @@ void *Fam_Allocator_Client::copy(Fam_Descriptor *src, uint64_t srcCopyStart,
     uint64_t srcItemSize = src->get_size();
     uint64_t destItemSize = dest->get_size();
     uint64_t srcKey = src->get_key();
+    uint64_t srcBaseAddr = (uint64_t)src->get_base_address();
 
     if ((srcCopyStart + nbytes) > srcItemSize) {
         throw Fam_Allocator_Exception(
@@ -304,7 +305,7 @@ void *Fam_Allocator_Client::copy(Fam_Descriptor *src, uint64_t srcCopyStart,
             "Destination offset or size is beyond dataitem boundary");
     }
 
-    return famCIS->copy(srcRegionId, srcOffset, srcCopyStart, srcKey, srcAddr,
+    return famCIS->copy(srcRegionId, srcOffset, srcCopyStart, srcKey, srcBaseAddr, srcAddr,
                         srcAddrLen, destRegionId, destOffset, destCopyStart,
                         nbytes, srcMemoryServerId, destMemoryServerId, uid,
                         gid);

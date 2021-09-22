@@ -258,7 +258,7 @@ class Fam_Async_QHandler::FamAsyncQHandlerImpl_ {
         if (tag->memoryService)
             tag->memoryService->copy(
                 tag->srcRegionId, tag->srcOffset, tag->srcKey,
-                tag->srcCopyStart, tag->srcAddr, tag->srcAddrLen,
+                tag->srcCopyStart, tag->srcBaseAddr, tag->srcAddr, tag->srcAddrLen,
                 tag->destRegionId, tag->destOffset, tag->size,
                 tag->srcMemserverId, tag->destMemserverId);
         else {

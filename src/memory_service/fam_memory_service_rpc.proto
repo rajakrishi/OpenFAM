@@ -140,6 +140,7 @@ message Fam_Memory_Copy_Request {
     uint32 src_addr_len = 9;
     uint64 src_memserver_id = 10;
     uint64 dest_memserver_id = 11;
+    uint64 src_base_addr = 12;
 }
 
 message Fam_Memory_Copy_Response {

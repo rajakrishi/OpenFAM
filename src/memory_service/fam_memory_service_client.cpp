@@ -248,7 +248,7 @@ void Fam_Memory_Service_Client::deallocate(uint64_t regionId, uint64_t offset) {
 }
 
 void Fam_Memory_Service_Client::copy(uint64_t srcRegionId, uint64_t srcOffset,
-                                     uint64_t srcKey, uint64_t srcCopyStart,
+                                     uint64_t srcKey, uint64_t srcCopyStart, uint64_t srcBaseAddr,
                                      const char *srcAddr, uint32_t srcAddrLen,
                                      uint64_t destRegionId, uint64_t destOffset,
                                      uint64_t size, uint64_t srcMemserverId,
@@ -263,6 +263,7 @@ void Fam_Memory_Service_Client::copy(uint64_t srcRegionId, uint64_t srcOffset,
     req.set_src_offset(srcOffset);
     req.set_src_key(srcKey);
     req.set_src_copy_start(srcCopyStart);
+    req.set_src_base_addr(srcBaseAddr);
     req.set_src_addr(srcAddr, srcAddrLen);
     req.set_src_addr_len(srcAddrLen);
     req.set_dest_offset(destOffset);

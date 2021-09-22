@@ -170,7 +170,7 @@ class Fam_CIS_Async_Handler {
                 try {
                     void *waitObj = famCIS->copy(
                         request.srcregionid(), request.srcoffset(),
-                        request.srccopystart(), request.srckey(),
+                        request.srccopystart(), request.srckey(),  request.srcbaseaddr(),
                         request.srcaddr().c_str(), request.srcaddrlen(),
                         request.destregionid(), request.destoffset(),
                         request.destcopystart(), request.copysize(),

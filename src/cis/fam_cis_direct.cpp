@@ -1043,7 +1043,7 @@ void Fam_CIS_Direct::fam_unmap(void *local, uint64_t regionId, uint64_t offset,
 }
 
 void *Fam_CIS_Direct::copy(uint64_t srcRegionId, uint64_t srcOffset,
-                           uint64_t srcCopyStart, uint64_t srcKey,
+                           uint64_t srcCopyStart, uint64_t srcKey, uint64_t srcBaseAddr,
                            const char *srcAddr, uint32_t srcAddrLen,
                            uint64_t destRegionId, uint64_t destOffset,
                            uint64_t destCopyStart, uint64_t nbytes,
@@ -1112,6 +1112,7 @@ void *Fam_CIS_Direct::copy(uint64_t srcRegionId, uint64_t srcOffset,
         tag->memoryService = memoryService;
         tag->srcRegionId = srcRegionId;
         tag->srcOffset = (srcOffset + srcCopyStart);
+	tag->srcBaseAddr = srcBaseAddr;
         tag->destRegionId = destRegionId;
         tag->destOffset = (destOffset + destCopyStart);
         tag->size = nbytes;
@@ -1126,7 +1127,7 @@ void *Fam_CIS_Direct::copy(uint64_t srcRegionId, uint64_t srcOffset,
         waitObj->tag = tag;
     } else {
         memoryService->copy(srcRegionId, (srcOffset + srcCopyStart), srcKey,
-                            srcCopyStart, srcAddr, srcAddrLen, destRegionId,
+                            srcCopyStart, srcBaseAddr, srcAddr, srcAddrLen, destRegionId,
                             (destOffset + destCopyStart), nbytes,
                             srcMemoryServerId, destMemoryServerId);
     }

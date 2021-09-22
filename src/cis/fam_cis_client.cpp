@@ -379,7 +379,7 @@ Fam_Region_Item_Info Fam_CIS_Client::get_stat_info(uint64_t regionId,
 }
 
 void *Fam_CIS_Client::copy(uint64_t srcRegionId, uint64_t srcOffset,
-                           uint64_t srcCopyStart, uint64_t srcKey,
+                           uint64_t srcCopyStart, uint64_t srcKey, uint64_t srcBaseAddr,
                            const char *srcAddr, uint32_t srcAddrLen,
                            uint64_t destRegionId, uint64_t destOffset,
                            uint64_t destCopyStar, uint64_t nbytes,
@@ -394,6 +394,7 @@ void *Fam_CIS_Client::copy(uint64_t srcRegionId, uint64_t srcOffset,
     req.set_destregionid(destRegionId);
     req.set_srcoffset(srcOffset);
     req.set_srckey(srcKey);
+    req.set_srcbaseaddr(srcBaseAddr);
     req.set_srcaddr(srcAddr, srcAddrLen);
     req.set_srcaddrlen(srcAddrLen);
     req.set_destoffset(destOffset);
