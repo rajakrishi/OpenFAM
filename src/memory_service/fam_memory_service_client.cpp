@@ -352,7 +352,8 @@ uint64_t Fam_Memory_Service_Client::get_key(uint64_t regionId, uint64_t offset,
 void Fam_Memory_Service_Client::get_atomic(uint64_t regionId,
                                            uint64_t srcOffset,
                                            uint64_t dstOffset, uint64_t nbytes,
-                                           uint64_t key, const char *nodeAddr,
+                                           uint64_t key, uint64_t srcBaseAddr,
+					   const char *nodeAddr,
                                            uint32_t nodeAddrSize) {
     Fam_Memory_Atomic_Get_Request req;
     Fam_Memory_Atomic_Response res;
@@ -363,6 +364,7 @@ void Fam_Memory_Service_Client::get_atomic(uint64_t regionId,
     req.set_dstoffset(dstOffset);
     req.set_nbytes(nbytes);
     req.set_key(key);
+    req.set_src_base_addr(srcBaseAddr);
     req.set_nodeaddr(nodeAddr, nodeAddrSize);
     req.set_nodeaddrsize(nodeAddrSize);
     ::grpc::Status status = stub->get_atomic(&ctx, req, &res);
@@ -374,7 +376,8 @@ void Fam_Memory_Service_Client::get_atomic(uint64_t regionId,
 void Fam_Memory_Service_Client::put_atomic(uint64_t regionId,
                                            uint64_t srcOffset,
                                            uint64_t dstOffset, uint64_t nbytes,
-                                           uint64_t key, const char *nodeAddr,
+                                           uint64_t key, uint64_t srcBaseAddr,
+					   const char *nodeAddr,
                                            uint32_t nodeAddrSize,
                                            const char *data) {
     Fam_Memory_Atomic_Put_Request req;
@@ -387,6 +390,7 @@ void Fam_Memory_Service_Client::put_atomic(uint64_t regionId,
     req.set_dstoffset(dstOffset);
     req.set_nbytes(nbytes);
     req.set_key(key);
+    req.set_src_base_addr(srcBaseAddr);
     req.set_nodeaddr(nodeAddr, nodeAddrSize);
     req.set_nodeaddrsize(nodeAddrSize);
     if (nbytes <= MAX_DATA_IN_MSG)

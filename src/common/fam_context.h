@@ -58,7 +58,7 @@ class Fam_Context {
         numLastRxFailCnt = 0;
         numLastTxFailCnt = 0;
 
-        fi->caps = FI_RMA | FI_WRITE | FI_READ | FI_ATOMIC | FI_REMOTE_WRITE |
+        fi->caps |= FI_RMA | FI_WRITE | FI_READ | FI_ATOMIC | FI_REMOTE_WRITE |
                    FI_REMOTE_READ;
         fi->tx_attr->op_flags = FI_DELIVERY_COMPLETE;
         fi->mode = 0;
@@ -95,7 +95,7 @@ class Fam_Context {
             // return -1;
         }
 
-        ret = fi_ep_bind(ep, &txcq->fid, FI_TRANSMIT | FI_SELECTIVE_COMPLETION);
+        ret = fi_ep_bind(ep, &txcq->fid, FI_SEND | FI_TRANSMIT | FI_SELECTIVE_COMPLETION);
         if (ret < 0) {
             // print_fierr("fi_eq_txcq_bind", ret);
             // return -1;

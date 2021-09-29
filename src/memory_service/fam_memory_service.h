@@ -77,11 +77,11 @@ class Fam_Memory_Service {
 
     virtual void get_atomic(uint64_t regionId, uint64_t srcOffset,
                             uint64_t dstOffset, uint64_t nbytes, uint64_t key,
-                            const char *nodeAddr, uint32_t nodeAddrSize) = 0;
+                            uint64_t srcBaseAdd, const char *nodeAddr, uint32_t nodeAddrSize) = 0;
 
     virtual void put_atomic(uint64_t regionId, uint64_t srcOffset,
                             uint64_t dstOffset, uint64_t nbytes, uint64_t key,
-                            const char *nodeAddr, uint32_t nodeAddrSize,
+                            uint64_t srcBaseAdd, const char *nodeAddr, uint32_t nodeAddrSize,
                             const char *data) = 0;
 
     virtual void scatter_strided_atomic(uint64_t regionId, uint64_t offset,

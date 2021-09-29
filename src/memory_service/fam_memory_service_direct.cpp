@@ -497,7 +497,8 @@ void Fam_Memory_Service_Direct::init_atomic_queue() {
 void Fam_Memory_Service_Direct::get_atomic(uint64_t regionId,
                                            uint64_t srcOffset,
                                            uint64_t dstOffset, uint64_t nbytes,
-                                           uint64_t key, const char *nodeAddr,
+                                           uint64_t key, uint64_t srcBaseAddr,
+					   const char *nodeAddr,
                                            uint32_t nodeAddrSize) {
     MEMORY_SERVICE_DIRECT_PROFILE_START_OPS()
     ostringstream message;
@@ -519,6 +520,7 @@ void Fam_Memory_Service_Direct::get_atomic(uint64_t regionId,
     InpMsg.dstDataGdesc.offset = srcOffset;
     InpMsg.offset = dstOffset;
     InpMsg.key = key;
+    InpMsg.srcBaseAddr = srcBaseAddr;
     InpMsg.size = nbytes;
     InpMsg.flag |= ATOMIC_READ;
 
@@ -540,7 +542,7 @@ void Fam_Memory_Service_Direct::get_atomic(uint64_t regionId,
 void Fam_Memory_Service_Direct::put_atomic(uint64_t regionId,
                                            uint64_t srcOffset,
                                            uint64_t dstOffset, uint64_t nbytes,
-                                           uint64_t key, const char *nodeAddr,
+                                           uint64_t key, uint64_t srcBaseAddr, const char *nodeAddr,
                                            uint32_t nodeAddrSize,
                                            const char *data) {
     MEMORY_SERVICE_DIRECT_PROFILE_START_OPS()
@@ -562,6 +564,7 @@ void Fam_Memory_Service_Direct::put_atomic(uint64_t regionId,
     InpMsg.dstDataGdesc.offset = srcOffset;
     InpMsg.offset = dstOffset;
     InpMsg.key = key;
+    InpMsg.srcBaseAddr = srcBaseAddr;
     InpMsg.size = nbytes;
     InpMsg.flag |= ATOMIC_WRITE;
     if ((nbytes > 0) && (nbytes < MAX_DATA_IN_MSG)) {

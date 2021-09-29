@@ -83,11 +83,12 @@ class Fam_Memory_Service_Client : public Fam_Memory_Service {
                      bool rwFlag);
 
     void get_atomic(uint64_t regionId, uint64_t srcOffset, uint64_t dstOffset,
-                    uint64_t nbytes, uint64_t key, const char *nodeAddr,
-                    uint32_t nodeAddrSize);
+                    uint64_t nbytes, uint64_t key, uint64_t srcBaseAddr, 
+		    const char *nodeAddr, uint32_t nodeAddrSize);
 
     void put_atomic(uint64_t regionId, uint64_t srcOffset, uint64_t dstOffset,
-                    uint64_t nbytes, uint64_t key, const char *nodeAddr,
+                    uint64_t nbytes, uint64_t key, uint64_t srcBaseAddr,
+		    const char *nodeAddr,
                     uint32_t nodeAddrSize, const char *data);
 
     void scatter_strided_atomic(uint64_t regionId, uint64_t offset,

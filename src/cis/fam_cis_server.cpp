@@ -610,7 +610,7 @@ Fam_CIS_Server::get_atomic(::grpc::ServerContext *context,
     try {
         famCIS->get_atomic(request->regionid(), request->srcoffset(),
                            request->dstoffset(), request->nbytes(),
-                           request->key(), request->nodeaddr().c_str(),
+                           request->key(), request->srcbaseaddr(), request->nodeaddr().c_str(),
                            request->nodeaddrsize(), request->memserver_id(),
                            request->uid(), request->gid());
     }
@@ -635,7 +635,8 @@ Fam_CIS_Server::put_atomic(::grpc::ServerContext *context,
     try {
         famCIS->put_atomic(
             request->regionid(), request->srcoffset(), request->dstoffset(),
-            request->nbytes(), request->key(), request->nodeaddr().c_str(),
+            request->nbytes(), request->key(), request->srcbaseaddr(),
+	    request->nodeaddr().c_str(),
             request->nodeaddrsize(), request->data().c_str(),
             request->memserver_id(), request->uid(), request->gid());
     }

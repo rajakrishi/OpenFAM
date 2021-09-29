@@ -597,7 +597,7 @@ void Fam_CIS_Client::get_memserverinfo(void *memServerInfoBuffer) {
 
 int Fam_CIS_Client::get_atomic(uint64_t regionId, uint64_t srcOffset,
                                uint64_t dstOffset, uint64_t nbytes,
-                               uint64_t key, const char *nodeAddr,
+                               uint64_t key, uint64_t srcBaseAddr, const char *nodeAddr,
                                uint32_t nodeAddrSize, uint64_t memoryServerId,
                                uint32_t uid, uint32_t gid) {
     Fam_Atomic_Get_Request req;
@@ -608,6 +608,7 @@ int Fam_CIS_Client::get_atomic(uint64_t regionId, uint64_t srcOffset,
     req.set_dstoffset(dstOffset);
     req.set_nbytes(nbytes);
     req.set_key(key);
+    req.set_srcbaseaddr(srcBaseAddr);
     req.set_nodeaddr(nodeAddr, nodeAddrSize);
     req.set_nodeaddrsize(nodeAddrSize);
     req.set_memserver_id(memoryServerId);
@@ -621,7 +622,7 @@ int Fam_CIS_Client::get_atomic(uint64_t regionId, uint64_t srcOffset,
 
 int Fam_CIS_Client::put_atomic(uint64_t regionId, uint64_t srcOffset,
                                uint64_t dstOffset, uint64_t nbytes,
-                               uint64_t key, const char *nodeAddr,
+                               uint64_t key, uint64_t srcBaseAddr, const char *nodeAddr,
                                uint32_t nodeAddrSize, const char *data,
                                uint64_t memoryServerId, uint32_t uid,
                                uint32_t gid) {
@@ -633,6 +634,7 @@ int Fam_CIS_Client::put_atomic(uint64_t regionId, uint64_t srcOffset,
     req.set_dstoffset(dstOffset);
     req.set_nbytes(nbytes);
     req.set_key(key);
+    req.set_srcbaseaddr((uint64_t)data);
     req.set_nodeaddr(nodeAddr, nodeAddrSize);
     if (nbytes <= MAX_DATA_IN_MSG)
         req.set_data(data, nbytes);

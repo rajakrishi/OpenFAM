@@ -367,7 +367,8 @@ Fam_Memory_Service_Server::get_key(::grpc::ServerContext *context,
     try {
         memoryService->get_atomic(request->regionid(), request->srcoffset(),
                                   request->dstoffset(), request->nbytes(),
-                                  request->key(), request->nodeaddr().c_str(),
+                                  request->key(), request->src_base_addr(),
+				  request->nodeaddr().c_str(),
                                   request->nodeaddrsize());
     } catch (Memory_Service_Exception &e) {
         response->set_errorcode(e.fam_error());
@@ -386,7 +387,8 @@ Fam_Memory_Service_Server::get_key(::grpc::ServerContext *context,
     try {
         memoryService->put_atomic(
             request->regionid(), request->srcoffset(), request->dstoffset(),
-            request->nbytes(), request->key(), request->nodeaddr().c_str(),
+            request->nbytes(), request->key(), request->src_base_addr(),
+	    request->nodeaddr().c_str(),
             request->nodeaddrsize(), request->data().c_str());
     } catch (Memory_Service_Exception &e) {
         response->set_errorcode(e.fam_error());

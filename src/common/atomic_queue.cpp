@@ -546,7 +546,7 @@ void *process_queue(void *arg) {
                 try {
                     // Write data to client's memory
                     ret = fabric_write(
-                        msgPointer->key, localPointerD, msgPointer->size, 0,
+                        msgPointer->key, localPointerD, msgPointer->size, msgPointer->srcBaseAddr,
                         fiAddr, famOpsLibfabricQ->get_defaultCtx(uint64_t(0)));
                 } catch (...) {
                     retStatus = FABRICWRITEERROR;
@@ -648,7 +648,7 @@ void *process_queue(void *arg) {
                         try {
                             retStatus = fabric_read(
                                 msgPointer->key, localPointerB,
-                                msgPointer->size, 0, fiAddr,
+                                msgPointer->size, msgPointer->srcBaseAddr, fiAddr,
                                 famOpsLibfabricQ->get_defaultCtx(uint64_t(0)));
                             try {
                                 openfam_persist(localPointerB,

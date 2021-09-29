@@ -156,6 +156,7 @@ message Fam_Memory_Atomic_Get_Request {
     uint64 key = 5;
     bytes nodeaddr = 6;
     uint32 nodeaddrsize = 7;
+    uint64 src_base_addr = 8;
 }
 
 message Fam_Memory_Atomic_Put_Request {
@@ -167,6 +168,7 @@ message Fam_Memory_Atomic_Put_Request {
     bytes nodeaddr = 6;
     uint32 nodeaddrsize = 7;
     bytes data = 8;
+    uint64 src_base_addr = 9;
 }
 
 message Fam_Memory_Atomic_Response {
