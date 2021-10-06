@@ -1259,9 +1259,10 @@ configFileParams Fam_CIS_Direct::get_config_info(std::string filename) {
 }
 int Fam_CIS_Direct::get_atomic(uint64_t regionId, uint64_t srcOffset,
                                uint64_t dstOffset, uint64_t nbytes,
-                               uint64_t key, const char *nodeAddr,
-                               uint32_t nodeAddrSize, uint64_t memoryServerId,
-                               uint32_t uid, uint32_t gid) {
+                               uint64_t key, uint64_t srcBaseAddr,
+                               const char *nodeAddr, uint32_t nodeAddrSize,
+                               uint64_t memoryServerId, uint32_t uid,
+                               uint32_t gid) {
     CIS_DIRECT_PROFILE_START_OPS()
     ostringstream message;
     uint64_t metadataServiceId = 0;
@@ -1293,17 +1294,17 @@ int Fam_CIS_Direct::get_atomic(uint64_t regionId, uint64_t srcOffset,
     }
 
     memoryService->get_atomic(regionId, srcOffset, dstOffset, nbytes, key,
-                              nodeAddr, nodeAddrSize);
+                              srcBaseAddr, nodeAddr, nodeAddrSize);
     CIS_DIRECT_PROFILE_END_OPS(cis_get_atomic);
     return 0;
 }
 
 int Fam_CIS_Direct::put_atomic(uint64_t regionId, uint64_t srcOffset,
                                uint64_t dstOffset, uint64_t nbytes,
-                               uint64_t key, const char *nodeAddr,
-                               uint32_t nodeAddrSize, const char *data,
-                               uint64_t memoryServerId, uint32_t uid,
-                               uint32_t gid) {
+                               uint64_t key, uint64_t srcBaseAddr,
+                               const char *nodeAddr, uint32_t nodeAddrSize,
+                               const char *data, uint64_t memoryServerId,
+                               uint32_t uid, uint32_t gid) {
     CIS_DIRECT_PROFILE_START_OPS()
     ostringstream message;
     uint64_t metadataServiceId = 0;
@@ -1334,7 +1335,7 @@ int Fam_CIS_Direct::put_atomic(uint64_t regionId, uint64_t srcOffset,
         THROW_ERRNO_MSG(CIS_Exception, OUT_OF_RANGE, message.str().c_str());
     }
     memoryService->put_atomic(regionId, srcOffset, dstOffset, nbytes, key,
-                              nodeAddr, nodeAddrSize, data);
+                              srcBaseAddr, nodeAddr, nodeAddrSize, data);
     CIS_DIRECT_PROFILE_END_OPS(cis_put_atomic);
     return 0;
 }
@@ -1342,8 +1343,8 @@ int Fam_CIS_Direct::put_atomic(uint64_t regionId, uint64_t srcOffset,
 int Fam_CIS_Direct::scatter_strided_atomic(
     uint64_t regionId, uint64_t offset, uint64_t nElements,
     uint64_t firstElement, uint64_t stride, uint64_t elementSize, uint64_t key,
-    const char *nodeAddr, uint32_t nodeAddrSize, uint64_t memoryServerId,
-    uint32_t uid, uint32_t gid) {
+    uint64_t srcBaseAddr, const char *nodeAddr, uint32_t nodeAddrSize,
+    uint64_t memoryServerId, uint32_t uid, uint32_t gid) {
 
     CIS_DIRECT_PROFILE_START_OPS()
     ostringstream message;
@@ -1370,9 +1371,9 @@ int Fam_CIS_Direct::scatter_strided_atomic(
         throw;
     }
 
-    memoryService->scatter_strided_atomic(regionId, offset, nElements,
-                                          firstElement, stride, elementSize,
-                                          key, nodeAddr, nodeAddrSize);
+    memoryService->scatter_strided_atomic(
+        regionId, offset, nElements, firstElement, stride, elementSize, key,
+        srcBaseAddr, nodeAddr, nodeAddrSize);
     CIS_DIRECT_PROFILE_END_OPS(cis_scatter_strided_atomic);
     return 0;
 }
@@ -1380,8 +1381,8 @@ int Fam_CIS_Direct::scatter_strided_atomic(
 int Fam_CIS_Direct::gather_strided_atomic(
     uint64_t regionId, uint64_t offset, uint64_t nElements,
     uint64_t firstElement, uint64_t stride, uint64_t elementSize, uint64_t key,
-    const char *nodeAddr, uint32_t nodeAddrSize, uint64_t memoryServerId,
-    uint32_t uid, uint32_t gid) {
+    uint64_t srcBaseAddr, const char *nodeAddr, uint32_t nodeAddrSize,
+    uint64_t memoryServerId, uint32_t uid, uint32_t gid) {
 
     CIS_DIRECT_PROFILE_START_OPS()
     ostringstream message;
@@ -1411,7 +1412,7 @@ int Fam_CIS_Direct::gather_strided_atomic(
 
     memoryService->gather_strided_atomic(regionId, offset, nElements,
                                          firstElement, stride, elementSize, key,
-                                         nodeAddr, nodeAddrSize);
+                                         srcBaseAddr, nodeAddr, nodeAddrSize);
     CIS_DIRECT_PROFILE_END_OPS(cis_gather_strided_atomic);
     return 0;
 }
@@ -1419,8 +1420,8 @@ int Fam_CIS_Direct::gather_strided_atomic(
 int Fam_CIS_Direct::scatter_indexed_atomic(
     uint64_t regionId, uint64_t offset, uint64_t nElements,
     const void *elementIndex, uint64_t elementSize, uint64_t key,
-    const char *nodeAddr, uint32_t nodeAddrSize, uint64_t memoryServerId,
-    uint32_t uid, uint32_t gid) {
+    uint64_t srcBaseAddr, const char *nodeAddr, uint32_t nodeAddrSize,
+    uint64_t memoryServerId, uint32_t uid, uint32_t gid) {
 
     CIS_DIRECT_PROFILE_START_OPS()
     ostringstream message;
@@ -1448,7 +1449,7 @@ int Fam_CIS_Direct::scatter_indexed_atomic(
 
     memoryService->scatter_indexed_atomic(regionId, offset, nElements,
                                           elementIndex, elementSize, key,
-                                          nodeAddr, nodeAddrSize);
+                                          srcBaseAddr, nodeAddr, nodeAddrSize);
     CIS_DIRECT_PROFILE_END_OPS(cis_scatter_indexed_atomic);
     return 0;
 }
@@ -1456,8 +1457,8 @@ int Fam_CIS_Direct::scatter_indexed_atomic(
 int Fam_CIS_Direct::gather_indexed_atomic(
     uint64_t regionId, uint64_t offset, uint64_t nElements,
     const void *elementIndex, uint64_t elementSize, uint64_t key,
-    const char *nodeAddr, uint32_t nodeAddrSize, uint64_t memoryServerId,
-    uint32_t uid, uint32_t gid) {
+    uint64_t srcBaseAddr, const char *nodeAddr, uint32_t nodeAddrSize,
+    uint64_t memoryServerId, uint32_t uid, uint32_t gid) {
 
     CIS_DIRECT_PROFILE_START_OPS()
     ostringstream message;
@@ -1485,7 +1486,7 @@ int Fam_CIS_Direct::gather_indexed_atomic(
 
     memoryService->gather_indexed_atomic(regionId, offset, nElements,
                                          elementIndex, elementSize, key,
-                                         nodeAddr, nodeAddrSize);
+                                         srcBaseAddr, nodeAddr, nodeAddrSize);
     CIS_DIRECT_PROFILE_END_OPS(cis_gather_indexed_atomic);
     return 0;
 }

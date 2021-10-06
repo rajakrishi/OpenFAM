@@ -608,11 +608,11 @@ Fam_CIS_Server::get_atomic(::grpc::ServerContext *context,
     CIS_SERVER_PROFILE_START_OPS()
     ostringstream message;
     try {
-        famCIS->get_atomic(request->regionid(), request->srcoffset(),
-                           request->dstoffset(), request->nbytes(),
-                           request->key(), request->nodeaddr().c_str(),
-                           request->nodeaddrsize(), request->memserver_id(),
-                           request->uid(), request->gid());
+        famCIS->get_atomic(
+            request->regionid(), request->srcoffset(), request->dstoffset(),
+            request->nbytes(), request->key(), request->srcbaseaddr(),
+            request->nodeaddr().c_str(), request->nodeaddrsize(),
+            request->memserver_id(), request->uid(), request->gid());
     }
     catch (Fam_Exception &e) {
         response->set_errorcode(e.fam_error());
@@ -633,11 +633,12 @@ Fam_CIS_Server::put_atomic(::grpc::ServerContext *context,
     CIS_SERVER_PROFILE_START_OPS()
     ostringstream message;
     try {
-        famCIS->put_atomic(
-            request->regionid(), request->srcoffset(), request->dstoffset(),
-            request->nbytes(), request->key(), request->nodeaddr().c_str(),
-            request->nodeaddrsize(), request->data().c_str(),
-            request->memserver_id(), request->uid(), request->gid());
+        famCIS->put_atomic(request->regionid(), request->srcoffset(),
+                           request->dstoffset(), request->nbytes(),
+                           request->key(), request->srcbaseaddr(),
+                           request->nodeaddr().c_str(), request->nodeaddrsize(),
+                           request->data().c_str(), request->memserver_id(),
+                           request->uid(), request->gid());
     }
     catch (Fam_Exception &e) {
         response->set_errorcode(e.fam_error());
@@ -661,7 +662,7 @@ Fam_CIS_Server::put_atomic(::grpc::ServerContext *context,
         famCIS->scatter_strided_atomic(
             request->regionid(), request->offset(), request->nelements(),
             request->firstelement(), request->stride(), request->elementsize(),
-            request->key(), request->nodeaddr().c_str(),
+            request->key(), request->srcbaseaddr(), request->nodeaddr().c_str(),
             request->nodeaddrsize(), request->memserver_id(), request->uid(),
             request->gid());
     }
@@ -687,7 +688,7 @@ Fam_CIS_Server::put_atomic(::grpc::ServerContext *context,
         famCIS->gather_strided_atomic(
             request->regionid(), request->offset(), request->nelements(),
             request->firstelement(), request->stride(), request->elementsize(),
-            request->key(), request->nodeaddr().c_str(),
+            request->key(), request->srcbaseaddr(), request->nodeaddr().c_str(),
             request->nodeaddrsize(), request->memserver_id(), request->uid(),
             request->gid());
     }
@@ -713,7 +714,7 @@ Fam_CIS_Server::put_atomic(::grpc::ServerContext *context,
         famCIS->scatter_indexed_atomic(
             request->regionid(), request->offset(), request->nelements(),
             request->elementindex().c_str(), request->elementsize(),
-            request->key(), request->nodeaddr().c_str(),
+            request->key(), request->srcbaseaddr(), request->nodeaddr().c_str(),
             request->nodeaddrsize(), request->memserver_id(), request->uid(),
             request->gid());
     }
@@ -739,7 +740,7 @@ Fam_CIS_Server::put_atomic(::grpc::ServerContext *context,
         famCIS->gather_indexed_atomic(
             request->regionid(), request->offset(), request->nelements(),
             request->elementindex().c_str(), request->elementsize(),
-            request->key(), request->nodeaddr().c_str(),
+            request->key(), request->srcbaseaddr(), request->nodeaddr().c_str(),
             request->nodeaddrsize(), request->memserver_id(), request->uid(),
             request->gid());
     }
