@@ -61,6 +61,7 @@ Fam_Ops_Libfabric::~Fam_Ops_Libfabric() {
     free(service);
     free(provider);
     free(serverAddrName);
+    hg_engine_finalize();
 }
 
 Fam_Ops_Libfabric::Fam_Ops_Libfabric(bool source, const char *libfabricProvider,
@@ -384,7 +385,7 @@ void Fam_Ops_Libfabric::finalize() {
         fi_close(&av->fid);
         av = NULL;
     }
-    hg_engine_finalize();
+    //hg_engine_finalize();
 }
 
 #if 0
@@ -454,6 +455,37 @@ void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
      return;
 }
 #endif
+hg_return_t aggregate_cb(const struct hg_cb_info *info) {
+    hg_return_t ret;
+    ostringstream message;
+    Merc_RPC_State *rpcState = (Merc_RPC_State *)info->arg;
+    my_rpc_out_t resp;
+
+
+    assert(info->ret == HG_SUCCESS);
+    cout << "In callback: " << endl;
+
+    ret = HG_Get_output(info->info.forward.handle, &resp);
+    assert(ret == 0);
+    (void) ret;
+
+    if(!resp.errorcode) {
+        cout << "resp.size= " << resp.size << endl;
+        pthread_mutex_lock(&rpcState->doneMutex);
+        rpcState->done = true;
+        pthread_cond_signal(&rpcState->doneCond);
+        pthread_mutex_unlock(&rpcState->doneMutex);
+    } else {
+        //rpcState->isFound = false;
+        //rpcState->done = true;
+        delete rpcState;
+        message << resp.errormsg;
+        THROW_ERR_MSG(Fam_Datapath_Exception, "aggregate not found");
+    }
+    HG_Free_output(info->info.forward.handle, &resp);
+    HG_Destroy(info->info.forward.handle);
+    return HG_SUCCESS;
+}
 /*
  * 1. Check queue_op_map for queue_descriptor
  *  1a. If not found - create the queue_descriptor and add it into
@@ -519,12 +551,39 @@ void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
   }
   rbuf = qd->rq[0];
   std::cout << "Found buffer: " << rbuf->nElements << std::endl;
+
+    cout << "My RPC ID: " << my_rpc_id << endl;
+    ostringstream message;
+    Merc_RPC_State *rpcState = new Merc_RPC_State();
+    my_rpc_in_t req;
+    rpcState->done = false;
+    rpcState->doneCond = PTHREAD_COND_INITIALIZER;
+    rpcState->doneMutex = PTHREAD_MUTEX_INITIALIZER;
+
+    cout << " 2. My RPC ID: " << my_rpc_id << endl;
+    hg_handle_t my_handle;
+    hg_engine_create_handle(svr_addr, my_rpc_id, &my_handle);
+    cout << " 3. My RPC ID: " << my_rpc_id << endl;
+    int ret = HG_Forward(my_handle, aggregate_cb, rpcState, &req);
+    assert(ret == 0);
+    (void) ret;
+
+    cout << " 4. My RPC ID: " << my_rpc_id << endl;
+    pthread_mutex_lock(&rpcState->doneMutex);
+    while(!rpcState->done)
+        pthread_cond_wait(&rpcState->doneCond, &rpcState->doneMutex);
+    pthread_mutex_unlock(&rpcState->doneMutex);
+    cout << "Call done from client... Exiting " << endl;
+
+    delete rpcState;
+  //TODO: Send data to server
 #if 0
      for(uint32_t i=0;i<rbuf->nElements;i++) {
         std::cout<<"Value : "<<*((int*)rbuf->buffer+i)<<" "<<*(rbuf->elementIndex+i)<<endl;
      }
 #endif
 }
+#if 0
 hg_return_t aggregate_cb(const struct hg_cb_info *info) {
     hg_return_t ret;
     ostringstream message;
@@ -556,6 +615,7 @@ hg_return_t aggregate_cb(const struct hg_cb_info *info) {
     HG_Destroy(info->info.forward.handle);
     return HG_SUCCESS;
 }
+#endif
 void Fam_Ops_Libfabric::fam_aggregate_poc(Fam_Descriptor *descriptor) {
     cout << "My RPC ID: " << my_rpc_id << endl;
     ostringstream message;
