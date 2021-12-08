@@ -44,6 +44,7 @@
 #include "common/fam_ops_shm.h"
 #include "common/fam_options.h"
 #include "fam/fam.h"
+#include "fam/fam_extras.h"
 #include "fam/fam_exception.h"
 #include "pmi/fam_runtime.h"
 #include "pmi/runtime_pmi2.h"
@@ -117,6 +118,11 @@ class fam::Impl_ {
         if (famRuntime)
             delete famRuntime;
     }
+    void myprint() { std::cout<<"Wooohooo!!! Impl class"<<std::endl; }
+    void fam_queue_operation(FAM_QUEUE_OP op,Fam_Descriptor *descriptor, int32_t value, uint64_t elementIndex);
+    void fam_aggregate_flush(Fam_Descriptor *descriptor);
+
+    void fam_aggregate_poc(Fam_Descriptor *descriptor);
 
     void fam_initialize(const char *groupName, Fam_Options *options);
 
@@ -600,6 +606,17 @@ void fam::Impl_::fam_reset_profile() {
 }
 #endif
 
+void fam::Impl_::fam_aggregate_poc(Fam_Descriptor *descriptor) {
+    std::ostringstream message;
+    if (descriptor == NULL) {
+        THROW_ERR_MSG(Fam_InvalidOption_Exception, "Invalid Options");
+    }
+    int ret = validate_item(descriptor);
+    if (ret == 0) {
+        famOps->fam_aggregate_poc(descriptor);
+    }
+}
+
 /**
  * fam() - constructor for fam class
  */
@@ -910,7 +927,6 @@ void fam::Impl_::clean_fam_options() {
  * permissions.
  * */
 int fam::Impl_::validate_item(Fam_Descriptor *descriptor) {
-    std::ostringstream message;
     uint64_t key = descriptor->get_key();
 
     if (key == FAM_KEY_UNINITIALIZED) {
@@ -918,6 +934,7 @@ int fam::Impl_::validate_item(Fam_Descriptor *descriptor) {
     }
 
     if (key == FAM_KEY_INVALID) {
+        std::ostringstream message;
         message << "Invalid Key Passed" << endl;
         THROW_ERR_MSG(Fam_InvalidOption_Exception, message.str().c_str());
     }
@@ -3858,7 +3875,45 @@ uint64_t fam::Impl_::fam_progress() {
     FAM_PROFILE_END_OPS(fam_progress);
     return ret;
 }
+void fam::fam_aggregate_poc(Fam_Descriptor *descriptor) {
+    TRY_CATCH_BEGIN
+    pimpl_->fam_aggregate_poc(descriptor);
+    RETURN_WITH_FAM_EXCEPTION
+}
 
+void fam::Impl_::fam_queue_operation(FAM_QUEUE_OP op, Fam_Descriptor *descriptor,
+                              int32_t value, uint64_t  elementIndex) {
+  FAM_CNTR_INC_API(fam_queue_operation);
+  FAM_PROFILE_START_ALLOCATOR(fam_and);
+  if (descriptor == NULL) {
+    THROW_ERR_MSG(Fam_InvalidOption_Exception, "Invalid Options");
+  }
+
+  int ret = validate_item(descriptor);
+  //int ret = 0;
+  FAM_PROFILE_END_ALLOCATOR(fam_queue_operation);
+
+  FAM_PROFILE_START_OPS(fam_queue_operation);
+  if (ret == 0) {
+    famOps->fam_queue_operation(op, descriptor, value, elementIndex);
+  }
+  FAM_PROFILE_END_OPS(fam_queue_operation);
+  return;
+}
+
+void fam::Impl_::fam_aggregate_flush(Fam_Descriptor *descriptor) 
+{
+    std::ostringstream message;
+    if (descriptor == NULL) {
+        THROW_ERR_MSG(Fam_InvalidOption_Exception, "Invalid Options");
+    }
+
+    int ret = validate_item(descriptor);
+    if (ret == 0) {
+        famOps->fam_aggregate_flush(descriptor);
+    }
+    return;
+}
 /**
  * Initialize the OpenFAM library. This method is required to be the first
  * method called when a process uses the OpenFAM library.
@@ -5347,6 +5402,22 @@ void fam::fam_reset_profile() {
 }
 #endif
 
+void fam::myprint() { cout << "In fam myprint"<<std::endl; }
+void fam::fam_queue_operation(FAM_QUEUE_OP op, Fam_Descriptor *descriptor,
+                              int32_t value, uint64_t elementIndex) {
+     std::cout<<"Queing operation in FAM"<<std::endl;
+    TRY_CATCH_BEGIN
+    pimpl_->fam_queue_operation(op,descriptor,value,elementIndex);
+    RETURN_WITH_FAM_EXCEPTION
+
+}
+void fam::fam_aggregate_flush(Fam_Descriptor *descriptor) {
+     std::cout<<"Queing operation in FAM"<<std::endl;
+    TRY_CATCH_BEGIN
+    pimpl_->fam_aggregate_flush(descriptor);
+    RETURN_WITH_FAM_EXCEPTION
+
+}
 /**
  * fam() - constructor for fam class
  */

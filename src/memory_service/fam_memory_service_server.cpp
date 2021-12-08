@@ -82,12 +82,17 @@ Fam_Memory_Service_Server::Fam_Memory_Service_Server(uint64_t rpcPort,
                                                      char *name,
                                                      char *libfabricPort,
                                                      char *libfabricProvider,
-                                                     char *fam_path)
+                                                     char *fam_path,
+                                                     Fam_Memory_Service_Direct *direct)
     : serverAddress(name), port(rpcPort) {
     MEMSERVER_PROFILE_INIT(MEMORY_SERVICE_SERVER)
     MEMSERVER_PROFILE_START_TIME(MEMORY_SERVICE_SERVER)
-    memoryService = new Fam_Memory_Service_Direct(name, libfabricPort,
+    if (direct != NULL){
+        memoryService = direct;
+    } else {
+        memoryService = new Fam_Memory_Service_Direct(name, libfabricPort,
                                                   libfabricProvider, fam_path);
+    }
 }
 
 void Fam_Memory_Service_Server::run() {

@@ -33,6 +33,7 @@
 #endif
 
 #include "memory_service/fam_memory_service_server.h"
+#include "memory_service/fam_memory_mercury_rpc.h"
 #include <iostream>
 using namespace std;
 using namespace metadata;
@@ -53,6 +54,8 @@ void signal_handler(int signum) {
 #endif
 
 Fam_Memory_Service_Server *memoryService;
+Fam_Memory_Service_Direct *direct;
+Fam_Memory_Mercury_RPC *memoryMercServer;
 
 int main(int argc, char *argv[]) {
     uint64_t rpcPort = 8789;
@@ -131,8 +134,15 @@ int main(int argc, char *argv[]) {
 
     memoryService = NULL;
     try {
+        memoryMercServer = new Fam_Memory_Mercury_RPC();
+        direct = memoryMercServer->get_memory_service();
+        cout << "name : " << name << " port : " << rpcPort << endl;
+        hg_engine_init(NA_TRUE, "psm2");
+        hg_engine_print_self_addr();
+        memoryMercServer->register_with_mercury_fam_aggregation();
+
         memoryService = new Fam_Memory_Service_Server(
-            rpcPort, name, libfabricPort, provider, fam_path);
+            rpcPort, name, libfabricPort, provider, fam_path, direct);
         memoryService->run();
     } catch (Fam_Exception &e) {
         if (memoryService) {

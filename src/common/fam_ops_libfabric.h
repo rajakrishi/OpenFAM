@@ -53,17 +53,40 @@
 #include "common/fam_ops.h"
 #include "common/fam_options.h"
 #include "fam/fam.h"
+#include "common/mercury_engine.h"
+#include <boost/lockfree/queue.hpp>
 
 using namespace std;
 
 namespace openfam {
 
+#define MAX_MEMORY_SERVER 255
 class Fam_Allocator_Client;
 struct Fam_Region_Map_t {
     uint64_t regionId;
     std::map<uint64_t, fid_mr *> *fiRegionMrs;
     pthread_rwlock_t fiRegionLock;
 };
+struct Fam_queue_request {
+    FAM_QUEUE_OP op;
+    int32_t value;
+    uint64_t elementIndex;
+};
+// Actual data is stored in below buffer.
+typedef struct {
+  void *buffer;
+  uint64_t *elementIndex;
+  std::atomic<uint64_t> nElements;
+} request_buffer;
+
+// Stores information about all the buffers for this descriptor
+// Each memory server will have seperate buffer
+typedef struct {
+  FAM_QUEUE_OP op;
+  int max_elements;
+  int elementsize;
+  request_buffer *rq[MAX_MEMORY_SERVER];
+} queue_descriptor;
 
 class Fam_Ops_Libfabric : public Fam_Ops {
   public:
@@ -314,6 +337,9 @@ class Fam_Ops_Libfabric : public Fam_Ops {
                               uint32_t value);
     uint64_t atomic_fetch_xor(Fam_Descriptor *descriptor, uint64_t offset,
                               uint64_t value);
+    void fam_queue_operation(FAM_QUEUE_OP op,Fam_Descriptor *descriptor, int32_t value, uint64_t elementIndex);
+    void fam_aggregate_poc(Fam_Descriptor *descriptor);
+    void fam_aggregate_flush(Fam_Descriptor *descriptor);
     /**
      * Routines to access protected members
      *
@@ -394,6 +420,11 @@ class Fam_Ops_Libfabric : public Fam_Ops {
     size_t fabric_iov_limit;
     size_t serverAddrNameLen;
     void *serverAddrName;
+    std::map<Fam_Descriptor*, boost::lockfree::queue<Fam_queue_request>*> *queue_map;
+    std::map<Fam_Descriptor *, queue_descriptor *> *queue_op_map;
+    pthread_rwlock_t *queue_op_map_lock;
+    hg_id_t my_rpc_id;
+    hg_addr_t svr_addr;
     std::map<uint64_t, std::pair<void *, size_t>> *memServerAddrs;
     std::map<uint64_t, fi_addr_t> *fiMemsrvMap;
     pthread_rwlock_t fiMemsrvAddrLock;

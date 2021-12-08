@@ -32,6 +32,7 @@ set(LIBOPENFAM_SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_service_client.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_service_direct.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_registration_libfabric.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_mercury_rpc.cpp
   PARENT_SCOPE
   )
 
@@ -42,6 +43,7 @@ set(CIS_SERVER_SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_service_client.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_service_direct.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_registration_libfabric.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_mercury_rpc.cpp
   PARENT_SCOPE
   )
 
@@ -53,5 +55,6 @@ set(MEMORY_SERVER_SRC
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_service_server.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_service_direct.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_registration_libfabric.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fam_memory_mercury_rpc.cpp
   PARENT_SCOPE
   )

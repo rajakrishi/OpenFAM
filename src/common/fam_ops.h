@@ -722,6 +722,14 @@ class Fam_Ops {
      * check_progress thread is used by memory server to keep the I/Os going on.
      */
     virtual void check_progress(Fam_Region_Descriptor *descriptor = NULL) = 0;
+
+    virtual void fam_queue_operation(FAM_QUEUE_OP op,Fam_Descriptor *descriptor, 
+            int32_t value, uint64_t elementIndex) = 0;
+    virtual void fam_aggregate_flush(Fam_Descriptor *descriptor) = 0;
+
+    // FAM Aggregation integration
+    virtual void fam_aggregate_poc(Fam_Descriptor *descriptor) = 0;
+
     /**
      * fam() - constructor for fam class
      */

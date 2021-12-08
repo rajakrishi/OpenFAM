@@ -47,7 +47,7 @@ Fam_Options fam_opts;
 TEST(FamPutGet, PutGetSuccess) {
     Fam_Region_Descriptor *desc;
     Fam_Descriptor *item;
-    char *local = strdup("Test message");
+    //char *local = strdup("Test message");
     const char *testRegion = get_uniq_str("test", my_fam);
     const char *firstItem = get_uniq_str("first", my_fam);
 
@@ -59,15 +59,16 @@ TEST(FamPutGet, PutGetSuccess) {
     EXPECT_NO_THROW(item = my_fam->fam_allocate(firstItem, 1024, 0777, desc));
     EXPECT_NE((void *)NULL, item);
 
-    EXPECT_NO_THROW(my_fam->fam_put_blocking(local, item, 0, 13));
-
+    //EXPECT_NO_THROW(my_fam->fam_put_blocking(local, item, 0, 13));
+    EXPECT_NO_THROW(my_fam->fam_aggregate_poc(item));
+/*
     // allocate local memory to receive 20 elements
     char *local2 = (char *)malloc(20);
 
     EXPECT_NO_THROW(my_fam->fam_get_blocking(local2, item, 0, 13));
 
     EXPECT_STREQ(local, local2);
-
+*/
     EXPECT_NO_THROW(my_fam->fam_deallocate(item));
     EXPECT_NO_THROW(my_fam->fam_destroy_region(desc));
 

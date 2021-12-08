@@ -37,6 +37,7 @@ add_fam_test(api_fam_get_option)
 add_fam_test(api_fam_initialze)
 add_fam_test(api_fam_list_options)
 add_fam_test(api_fam_lookup)
+add_fam_test(fam_queue_op)
 
 add_fam_test(api_fam_add)
 add_fam_test(api_fam_and)

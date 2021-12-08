@@ -46,6 +46,7 @@ class Fam_Descriptor::FamDescriptorImpl_ {
         gDescriptor = globalDesc;
         key = FAM_KEY_UNINITIALIZED;
         context = NULL;
+        queue_descriptor = NULL;
         base = NULL;
         desc_update_status = DESC_UNINITIALIZED;
         size = itemSize;
@@ -57,6 +58,7 @@ class Fam_Descriptor::FamDescriptorImpl_ {
         gDescriptor = globalDesc;
         key = FAM_KEY_UNINITIALIZED;
         context = NULL;
+        queue_descriptor = NULL;
         base = NULL;
         desc_update_status = DESC_UNINITIALIZED;
         size = 0;
@@ -68,6 +70,7 @@ class Fam_Descriptor::FamDescriptorImpl_ {
         gDescriptor = {FAM_INVALID_REGION, 0};
         key = FAM_KEY_UNINITIALIZED;
         context = NULL;
+        queue_descriptor = NULL;
         base = NULL;
         desc_update_status = DESC_UNINITIALIZED;
         size = 0;
@@ -79,6 +82,7 @@ class Fam_Descriptor::FamDescriptorImpl_ {
         gDescriptor = {FAM_INVALID_REGION, 0};
         key = FAM_KEY_UNINITIALIZED;
         context = NULL;
+        queue_descriptor = NULL;
         base = NULL;
         desc_update_status = DESC_INVALID;
         size = 0;
@@ -98,6 +102,10 @@ class Fam_Descriptor::FamDescriptorImpl_ {
     uint64_t get_key() { return key; }
 
     void set_context(void *ctx) { context = ctx; }
+
+    void set_queue_descriptor(void *qd) { queue_descriptor = qd; }
+
+    void *get_queue_descriptor() {return queue_descriptor; }
 
     void *get_context() { return context; }
 
@@ -140,6 +148,7 @@ class Fam_Descriptor::FamDescriptorImpl_ {
     /* libfabric access key*/
     uint64_t key;
     void *context;
+    void *queue_descriptor;
     void *base;
     int desc_update_status;
     mode_t perm;
@@ -170,7 +179,10 @@ uint64_t Fam_Descriptor::get_key() { return fdimpl_->get_key(); }
 
 void Fam_Descriptor::set_context(void *ctx) { fdimpl_->set_context(ctx); }
 
+void Fam_Descriptor::set_queue_descriptor(void *qd) { fdimpl_->set_queue_descriptor(qd); }
+
 void *Fam_Descriptor::get_context() { return fdimpl_->get_context(); }
+void *Fam_Descriptor::get_queue_descriptor() { return fdimpl_->get_queue_descriptor(); }
 
 void Fam_Descriptor::set_base_address(void *address) {
     fdimpl_->set_base_address(address);

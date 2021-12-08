@@ -2267,4 +2267,12 @@ uint64_t Fam_Ops_SHM::atomic_fetch_xor(Fam_Descriptor *descriptor,
     uint64_t *oldValue = (uint64_t *)result;
     return *oldValue;
 }
+void Fam_Ops_SHM::fam_aggregate_poc(Fam_Descriptor *descriptor) { return; }
+void Fam_Ops_SHM::fam_queue_operation(FAM_QUEUE_OP op, Fam_Descriptor *descriptor,
+                              int32_t value, uint64_t  elementIndex) {
+     return;
+}
+void Fam_Ops_SHM::fam_aggregate_flush(Fam_Descriptor *descriptor) {
+     return;
+}
 } // end namespace openfam

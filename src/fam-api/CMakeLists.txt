@@ -23,6 +23,7 @@
 set(LIBOPENFAM_SRC
   ${LIBOPENFAM_SRC}
   ${CMAKE_CURRENT_SOURCE_DIR}/fam.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fam_extras.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_descriptor.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_ops_libfabric.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/fam_ops_shm.cpp

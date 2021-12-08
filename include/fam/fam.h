@@ -101,6 +101,15 @@ typedef long long int128_t;
 #endif // __int128t
 #endif // int128_t
 
+typedef enum {
+        OP_ADD_INDEXED,
+        OP_SCATTER,
+        OP_GATHER,
+        OP_ADD,
+        OP_PUT,
+        OP_GET
+}FAM_QUEUE_OP;
+
 /**
  * Enumeration defining interleaving options for FAM.
  */
@@ -189,8 +198,10 @@ class Fam_Descriptor {
     uint64_t get_key();
     // get context
     void *get_context();
+    void *get_queue_descriptor();
     // set context
     void set_context(void *context);
+    void set_queue_descriptor(void *queue_descriptor);
     void set_base_address(void *address);
     void *get_base_address();
     // get status
@@ -292,6 +303,8 @@ typedef struct {
     /** FAM runtime - Default, pmix*/
     char *runtime;
 } Fam_Options;
+
+class fam_extras;
 
 class fam {
   public:
@@ -1128,6 +1141,7 @@ class fam {
      * @return - none
      */
     void fam_quiet(void);
+    void fam_reset_profile();
 
     /**
      * fam_progress - returns number of pending FAM
@@ -1145,10 +1159,15 @@ class fam {
      * ~fam() - destructor for fam class
      */
     ~fam();
+    void fam_aggregate_poc(Fam_Descriptor *descriptor);
+    void myprint();
+    void fam_queue_operation(FAM_QUEUE_OP op,Fam_Descriptor *descriptor, int32_t value, uint64_t elementIndex);
+    void fam_aggregate_flush(Fam_Descriptor *descriptor);
 
   private:
     class Impl_;
     Impl_ *pimpl_;
+    friend class fam_extras;
 };
 } // namespace openfam
 

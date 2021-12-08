@@ -172,6 +172,8 @@ void Fam_Memory_Service_Direct::dump_profile() {
     allocator->dump_profile();
     memoryRegistration->dump_profile();
 }
+void Fam_Memory_Service_Direct::fam_aggregation_poc() {
+}
 
 void Fam_Memory_Service_Direct::create_region(uint64_t regionId,
                                               size_t nbytes) {

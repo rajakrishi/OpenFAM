@@ -58,6 +58,8 @@ class Fam_Memory_Service_Direct : public Fam_Memory_Service {
 
     void dump_profile();
 
+    void fam_aggregation_poc();
+
     void create_region(uint64_t regionId, size_t nbytes);
 
     void destroy_region(uint64_t regionId);

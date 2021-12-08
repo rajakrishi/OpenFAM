@@ -276,6 +276,10 @@ class Fam_Ops_SHM : public Fam_Ops {
                               uint32_t value);
     uint64_t atomic_fetch_xor(Fam_Descriptor *descriptor, uint64_t offset,
                               uint64_t value);
+    void fam_aggregate_poc(Fam_Descriptor *descriptor);
+    void fam_queue_operation(FAM_QUEUE_OP op,Fam_Descriptor *descriptor, int32_t value, uint64_t elementIndex);
+    void fam_aggregate_flush(Fam_Descriptor *descriptor);
+
     union int128store {
         struct {
             uint64_t low;

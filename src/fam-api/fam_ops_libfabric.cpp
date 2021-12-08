@@ -44,6 +44,7 @@
 #include "common/fam_ops_libfabric.h"
 #include "fam/fam.h"
 #include "fam/fam_exception.h"
+#include "memory_service/fam_memory_mercury_rpc.h"
 
 using namespace std;
 
@@ -77,6 +78,10 @@ Fam_Ops_Libfabric::Fam_Ops_Libfabric(bool source, const char *libfabricProvider,
 
     fiAddrs = new std::vector<fi_addr_t>();
     memServerAddrs = new std::map<uint64_t, std::pair<void *, size_t>>();
+    queue_map = new std::map<Fam_Descriptor*, boost::lockfree::queue<Fam_queue_request>*>();
+    queue_op_map = new std::map<Fam_Descriptor *, queue_descriptor *>();
+    queue_op_map_lock = new pthread_rwlock_t();
+    pthread_rwlock_init(queue_op_map_lock, NULL);
     fiMemsrvMap = new std::map<uint64_t, fi_addr_t>();
     fiMrs = new std::map<uint64_t, Fam_Region_Map_t *>();
     contexts = new std::map<uint64_t, Fam_Context *>();
@@ -96,6 +101,14 @@ Fam_Ops_Libfabric::Fam_Ops_Libfabric(bool source, const char *libfabricProvider,
                 << famContextModel;
         THROW_ERR_MSG(Fam_InvalidOption_Exception, message.str().c_str());
     }
+    //Rishi: Mercury Client code
+
+    Fam_Memory_Mercury_RPC *mercuryRPC = new Fam_Memory_Mercury_RPC();
+    hg_engine_init(HG_FALSE, "psm2");
+
+    my_rpc_id = mercuryRPC->register_with_mercury_fam_aggregation();
+    const char *svr_addr_string=strdup("ofi+psm2://1a0b02:0");
+    hg_engine_addr_lookup(svr_addr_string, &svr_addr);
 }
 
 Fam_Ops_Libfabric::Fam_Ops_Libfabric(bool source, const char *libfabricProvider,
@@ -371,8 +384,201 @@ void Fam_Ops_Libfabric::finalize() {
         fi_close(&av->fid);
         av = NULL;
     }
+    hg_engine_finalize();
 }
 
+#if 0
+void Fam_Ops_Libfabric::fam_queue_operation(FAM_QUEUE_OP op, Fam_Descriptor *descriptor,
+                              int32_t value, uint64_t  elementIndex) {
+     std::cout<<"At fam_ops libfabric"<<std::endl;
+     Fam_queue_request req;
+     boost::lockfree::queue<Fam_queue_request> *queue;
+     req.op = op;
+     req.value = value;
+     req.elementIndex = elementIndex;
+     // Find queue for this descriptor
+     auto obj = queue_map->find(descriptor);
+     if (obj == queue_map->end()) {
+        std::cout<<"Creating new queue for desc :"<<descriptor;
+        // Queue not present, create the queue
+        queue = new boost::lockfree::queue<Fam_queue_request>(128);
+        queue_map->insert({descriptor,queue});
+     }
+     else 
+        queue = obj->second; 
+     queue->push(req);
+     std::cout<<"\n"<<req.op<<", Queued for "<<descriptor<<" "<<req.value<<" at "<<req.elementIndex<<std::endl;
+     //queue_map.insert(descriptor,req);
+     // Create request structure
+     // Find the descriptor in map - if not found add into map
+     // Add request structure to queue
+     return;
+}
+
+void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
+     std::cout<<"At fam_ops,flushing"<<std::endl;
+     Fam_queue_request req;
+     req.op = OP_PUT;
+     req.value = 0;
+     req.elementIndex = 0;
+     boost::lockfree::queue<Fam_queue_request> *queue;
+     auto obj = queue_map->find(descriptor);
+     if (obj == queue_map->end()) {
+          return;
+     } else {
+         queue = obj->second;
+         std::cout<<"Flushing, Queue found :"<<queue<<std::endl;
+     }
+     std::map<uint64_t,int32_t> *reduction_map = new std::map<uint64_t,int32_t>;
+     while(!queue->empty()) {         
+         queue->pop(req);
+         // Start client reduction
+         // 1. Create an std::map, with offset as key 
+         // 2. See if this offset is present in std::map
+         //    of yes add req.value to value
+         // 3. If not found insert 
+         auto obj = reduction_map->find(req.elementIndex);
+         if (obj == reduction_map->end()) {
+             reduction_map->insert({req.elementIndex,req.value});
+         }
+         else {
+              // req.elementIndex is found in map, modify the value
+              obj->second = obj->second + req.value;
+         }         
+         std::cout<<"\n"<<req.op<<", Popped for "<<descriptor<<" "<<req.value<<" at "<<req.elementIndex<<std::endl;
+     }
+     // print values in std::map
+     for (auto it = reduction_map->cbegin(); it != reduction_map->cend(); ++it) {
+          std::cout << "{" << it->first << ": " << it->second << "}"<<std::endl;
+     }
+     return;
+}
+#endif
+/*
+ * 1. Check queue_op_map for queue_descriptor
+ *  1a. If not found - create the queue_descriptor and add it into
+ * queue_op_map
+ * 2. Get memory server id from the request.
+ * 3. Find the request buffer address for the given memory server from
+ * queue_descriptor
+ * 4. Get the next element from from request queue - Use atomic add
+ * 5. Store data and element index.
+ */
+
+void Fam_Ops_Libfabric::fam_queue_operation(FAM_QUEUE_OP op,
+                                            Fam_Descriptor *descriptor,
+                                            int32_t value,
+                                            uint64_t elementIndex) {
+
+  queue_descriptor *qd;
+  request_buffer *rbuf;
+
+  qd = (queue_descriptor*)descriptor->get_queue_descriptor();
+  if (qd == NULL) {
+    // 
+    // TODO: You need mutex here. As of now we have to make 
+    // sure concurrent access will not happen
+    //
+    // Queue not present, create the queue
+    qd = new queue_descriptor();
+    qd->op = op;
+    qd->max_elements = 131072*64;
+    qd->elementsize = sizeof(int32_t);
+
+    // TODO: Initialize rq buffer
+    rbuf = new request_buffer();
+    rbuf->buffer = new char[qd->max_elements * sizeof(int32_t)];
+    rbuf->elementIndex = new uint64_t[qd->max_elements];
+    rbuf->nElements = 0;
+    qd->rq[0] = rbuf;
+    descriptor->set_queue_descriptor(qd);
+    // TODO: Give up lock
+  } 
+
+  // TODO: get memory server id from request
+  // Now assuming only one memory server
+  // TODO: Check if rq[id] is NULL, then initialize
+  rbuf = qd->rq[0];
+  // TODO: Use atomic adds
+  //uint64_t buffer_index = rbuf->nElements.fetch_add(1);
+  uint64_t buffer_index = rbuf->nElements.fetch_add(1);
+  *((int *)rbuf->buffer + buffer_index) = value;
+  *(rbuf->elementIndex + buffer_index) = elementIndex;
+}
+
+void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
+  std::cout << __FILE__ << " " << __LINE__ << std::endl;
+  queue_descriptor *qd;
+  request_buffer *rbuf;
+  qd = (queue_descriptor*)descriptor->get_queue_descriptor();
+  if (qd == NULL) {
+    return;
+  } else {
+    std::cout << "Flushing, Queue found :" << qd << " " << qd->op << " "
+              << qd->max_elements << " " << qd->elementsize << std::endl;
+  }
+  rbuf = qd->rq[0];
+  std::cout << "Found buffer: " << rbuf->nElements << std::endl;
+#if 0
+     for(uint32_t i=0;i<rbuf->nElements;i++) {
+        std::cout<<"Value : "<<*((int*)rbuf->buffer+i)<<" "<<*(rbuf->elementIndex+i)<<endl;
+     }
+#endif
+}
+hg_return_t aggregate_cb(const struct hg_cb_info *info) {
+    hg_return_t ret;
+    ostringstream message;
+    Merc_RPC_State *rpcState = (Merc_RPC_State *)info->arg;
+    my_rpc_out_t resp;
+
+
+    assert(info->ret == HG_SUCCESS);
+    cout << "In callback: " << endl;
+
+    ret = HG_Get_output(info->info.forward.handle, &resp);
+    assert(ret == 0);
+    (void) ret;
+
+    if(!resp.errorcode) {
+        cout << "resp.size= " << resp.size << endl;
+        pthread_mutex_lock(&rpcState->doneMutex);
+        rpcState->done = true;
+        pthread_cond_signal(&rpcState->doneCond);
+        pthread_mutex_unlock(&rpcState->doneMutex);
+    } else {
+        //rpcState->isFound = false;
+        //rpcState->done = true;
+        delete rpcState;
+        message << resp.errormsg;
+        THROW_ERR_MSG(Fam_Datapath_Exception, "aggregate not found");
+    }
+    HG_Free_output(info->info.forward.handle, &resp);
+    HG_Destroy(info->info.forward.handle);
+    return HG_SUCCESS;
+}
+void Fam_Ops_Libfabric::fam_aggregate_poc(Fam_Descriptor *descriptor) {
+    cout << "My RPC ID: " << my_rpc_id << endl;
+    ostringstream message;
+    Merc_RPC_State *rpcState = new Merc_RPC_State();
+    my_rpc_in_t req;
+    rpcState->done = false;
+    rpcState->doneCond = PTHREAD_COND_INITIALIZER;
+    rpcState->doneMutex = PTHREAD_MUTEX_INITIALIZER;
+
+    hg_handle_t my_handle;
+    hg_engine_create_handle(svr_addr, my_rpc_id, &my_handle);
+    int ret = HG_Forward(my_handle, aggregate_cb, rpcState, &req);
+    assert(ret == 0);
+    (void) ret;
+
+    pthread_mutex_lock(&rpcState->doneMutex);
+    while(!rpcState->done)
+        pthread_cond_wait(&rpcState->doneCond, &rpcState->doneMutex);
+    pthread_mutex_unlock(&rpcState->doneMutex);
+    cout << "Call done from client... Exiting " << endl;
+
+    delete rpcState;
+}
 int Fam_Ops_Libfabric::put_blocking(void *local, Fam_Descriptor *descriptor,
                                     uint64_t offset, uint64_t nbytes) {
     std::ostringstream message;

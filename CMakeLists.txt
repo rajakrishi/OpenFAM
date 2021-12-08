@@ -116,6 +116,9 @@ include_directories(${PROJECT_SOURCE_DIR}/src/pmi) # private headers (src)
 # library directories
 #
 link_directories(${PROJECT_SOURCE_DIR}/third-party/build/lib) # third-party libraries
+include_directories(/home/rajakr/2022/install/include)
+link_directories(/home/rajakr/2022/install/lib)
+link_directories(/home/rajakr/2022/install/bin)
 
 #
 # default system include and link directories
@@ -131,17 +134,17 @@ include_directories(/usr/local/include)
 set( TEST_RUNTIME "PMIX" )
 set( TEST_NPE 1 ) #Number of pe used with mpirun
 set( TEST_DEFAULT_REGION "Default" )
-set( TEST_CIS_SERVER "127.0.0.1" )
+set( TEST_CIS_SERVER "10.1.2.23" )
 set( TEST_GRPC_PORT "8787" )
-set( TEST_LIBFABRIC_PROVIDER "sockets" )
+set( TEST_LIBFABRIC_PROVIDER "psm2" )
 set( TEST_FAM_THREAD_MODEL "FAM_THREAD_SERIALIZE" )
 set( TEST_FAM_CONTEXT_MODEL "FAM_CONTEXT_DEFAULT" )
 set( TEST_NUM_CONSUMER "1" )
 
 if (USE_CONFIG_OPTION)
-	add_definitions(-DUSE_CONFIG_OPTION)	
+	add_definitions(-DUSE_CONFIG_OPTION)
 endif()
-	
+
 IF (${CMAKE_MAJOR_VERSION} GREATER 2)
         set( TEST_SKIP_STATUS 77 )
 ELSE ()
@@ -166,6 +169,10 @@ endif()
 if (USE_BOOST_FIBER)
         message(STATUS "Using Boost Fiber")
         add_definitions(-DUSE_BOOST_FIBER)
+endif()
+if (USE_MERCURY)
+    message(STATUS "Using Mercury RPC")
+    add_definitions(-DUSE_MERCURY)
 endif()
 
 # Use native atomics

@@ -37,9 +37,9 @@ target_link_libraries(fammetadata yaml-cpp nvmm radixtree grpc grpc++ grpc++_ref
 add_library(openfam SHARED ${LIBOPENFAM_SRC})
 
 if(USE_BOOST_FIBER)
-	target_link_libraries(openfam fabric fammetadata grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_fiber boost_context pmix pmi2 fambitmap)
+	target_link_libraries(openfam fabric fammetadata grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_fiber boost_context pmix pmi2 fambitmap mercury)
 else()
-	target_link_libraries(openfam fabric fammetadata grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_context pmix pmi2 fambitmap)
+	target_link_libraries(openfam fabric fammetadata grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_context pmix pmi2 fambitmap mercury)
 endif()
 
 set_target_properties(openfam PROPERTIES SOVERSION ${VERSION_STR})
@@ -47,17 +47,17 @@ set_target_properties(openfam PROPERTIES SOVERSION ${VERSION_STR})
 add_executable(cis_server ${CIS_SERVER_SRC})
 
 if(USE_BOOST_FIBER)
-	target_link_libraries(cis_server fabric grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_system boost_thread boost_fiber boost_context fambitmap radixtree)
+	target_link_libraries(cis_server fabric grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_system boost_thread boost_fiber boost_context fambitmap radixtree mercury)
 else()
-	target_link_libraries(cis_server fabric grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_system boost_thread boost_context fambitmap radixtree)
+	target_link_libraries(cis_server fabric grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_system boost_thread boost_context fambitmap radixtree mercury)
 endif()
 
 add_executable (memory_server ${MEMORY_SERVER_SRC})
 
 if(USE_BOOST_FIBER)
-	target_link_libraries(memory_server fabric radixtree grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_system boost_thread boost_fiber boost_context fambitmap)
+	target_link_libraries(memory_server fabric radixtree grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_system boost_thread boost_fiber boost_context fambitmap mercury)
 else()
-	target_link_libraries(memory_server fabric radixtree grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_system boost_thread boost_context fambitmap)
+	target_link_libraries(memory_server fabric radixtree grpc grpc++ grpc++_reflection yaml-cpp nvmm boost_system boost_thread boost_context fambitmap mercury)
 endif()
 
 add_executable (metadata_server ${METADATA_SERVER_SRC})
