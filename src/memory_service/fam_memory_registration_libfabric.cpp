@@ -408,7 +408,8 @@ void *Fam_Memory_Registration_Libfabric::get_addr() {
 }
 
 bool Fam_Memory_Registration_Libfabric::is_base_require() {
-    return isBaseRequire;
+    return true;
+    // return isBaseRequire;
 }
 
 } // namespace openfam

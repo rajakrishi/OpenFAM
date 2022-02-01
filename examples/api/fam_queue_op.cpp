@@ -45,7 +45,7 @@ typedef struct {
   fam_extras *famext;
   uint64_t iterations;
 } ValueInfo;
-#define MAX_VALUE 1000
+//#define MAX_VALUE 1000
 
 pthread_barrier_t   barrier; // the barrier synchronization object
 
@@ -57,7 +57,7 @@ void *thr_fam_queue_op(void *arg) {
   uint64_t iterations = opInfo->iterations;
   //std::cout<<"Thread runing in "<<sched_getcpu()<<std::endl;
   uint64_t start,end;
-  pthread_barrier_wait (&barrier);  
+  pthread_barrier_wait(&barrier);
   start = get_my_time();
   // fam_queue_op loop
   try {
@@ -127,8 +127,8 @@ int main(int argc, char **argv) {
 
   int count = 100;
   // int MAX_VALUE = 1000;
-
-  pthread_t thr[NUM_THREADS];
+  const int NUM_THREADS_MACRO = 256;
+  pthread_t thr[NUM_THREADS_MACRO];
   // ... Initialization code here
 
   try {
@@ -155,13 +155,12 @@ int main(int argc, char **argv) {
     // fam_queue_op here
     // int *local = (int *)malloc(10 * sizeof(int));
     fam_extras *famext = new fam_extras(myFam);
-    famext->fam_queue_operation(OP_PUT, descriptor, 1, 0);
+    famext->fam_queue_operation(OP_PUT, descriptor, 9, 9);
     //myFam->fam_reset_profile();
     ValueInfo *info;
     info = (ValueInfo *)malloc(sizeof(ValueInfo) * NUM_THREADS);
     pthread_barrier_init (&barrier, NULL, NUM_THREADS);
-      famext->fam_queue_operation(OP_PUT, descriptor, rand() % MAX_VALUE,
-                                  rand() % count);
+
     // Call thread
     for (int i = 0; i < NUM_THREADS; ++i) {
       info[i].descriptor = descriptor;

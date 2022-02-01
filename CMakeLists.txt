@@ -116,12 +116,12 @@ include_directories(${PROJECT_SOURCE_DIR}/src/pmi) # private headers (src)
 # library directories
 #
 link_directories(${PROJECT_SOURCE_DIR}/third-party/build/lib) # third-party libraries
-//include_directories(/home/rajakr/2022/install/include)
-//link_directories(/home/rajakr/2022/install/lib)
-//link_directories(/home/rajakr/2022/install/bin)
-include_directories(/nfs/rishi/mercury_old/install/include)
-link_directories(/nfs/rishi/mercury_old/install/lib)
-link_directories(/nfs/rishi/mercury_old/build/bin)
+#include_directories(/home/rajakr/2022/install/include)
+#link_directories(/home/rajakr/2022/install/lib)
+#link_directories(/home/rajakr/2022/install/bin)
+#include_directories(/nfs/rishi/mercury_old/install/include)
+#link_directories(/nfs/rishi/mercury_old/install/lib)
+#link_directories(/nfs/rishi/mercury_old/build/bin)
 
 
 #

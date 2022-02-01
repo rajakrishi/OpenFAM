@@ -172,8 +172,6 @@ void Fam_Memory_Service_Direct::dump_profile() {
     allocator->dump_profile();
     memoryRegistration->dump_profile();
 }
-void Fam_Memory_Service_Direct::fam_aggregation_poc() {
-}
 
 void Fam_Memory_Service_Direct::create_region(uint64_t regionId,
                                               size_t nbytes) {
@@ -550,6 +548,59 @@ void Fam_Memory_Service_Direct::init_atomic_queue() {
             for (int j = 0; j < i; j++)
                 pthread_cancel(atid[j]);
             break;
+        }
+    }
+}
+
+Fam_Region_Item_Info
+Fam_Memory_Service_Direct::fam_aggregation_poc(int regionId, size_t size) {
+    std::cout << "fam_aggregate_poc " << regionId << " " << size << std::endl;
+    Fam_Region_Item_Info info;
+    info.offset = 0;
+    return info;
+}
+
+void Fam_Memory_Service_Direct::aggregate_indexed_add(
+    uint64_t regionId, uint64_t Offset, uint64_t opcode, uint64_t elementsize,
+    uint64_t nElements, uint64_t buffer_location, uint64_t offset_location) {
+    std::cout << "aggregate_indexed_add, regionId:" << regionId
+              << " offset:" << Offset << " opcode:" << opcode
+              << " elementsize:" << elementsize << " nElements:" << nElements
+              << std::endl;
+    // Copy the code from put_atomic
+    ostringstream message;
+    string hashStr = "";
+    if (numAtomicThreads <= 0) {
+        message << "Atomic Transfer Library is not enabled";
+        throw Memory_Service_Exception(ATL_NOT_ENABLED, message.str().c_str());
+    }
+    hash<string> mystdhash;
+    hashStr = hashStr + std::to_string(regionId);
+    hashStr = hashStr + std::to_string(Offset);
+    uint64_t qId = mystdhash(hashStr) % numAtomicThreads;
+    atomicMsg InpMsg;
+    memset(&InpMsg, 0, sizeof(atomicMsg));
+    InpMsg.nodeAddrSize = 0;
+    InpMsg.dstDataGdesc.regionId = regionId;
+    InpMsg.dstDataGdesc.offset = Offset;
+    // InpMsg.offset = dstOffset;
+    // InpMsg.key = key;
+    InpMsg.iaElements = nElements;
+    InpMsg.iaelementSize = elementsize;
+    InpMsg.flag |= INDEXED_ADD;
+    InpMsg.iabufferLocation = buffer_location;
+    InpMsg.iaoffsetLocation = offset_location;
+
+    int ret = atomicQ[qId].push(&InpMsg, NULL);
+    if (ret) {
+        if (ret == ATL_QUEUE_FULL) {
+            message << "Atomic queue Full - Failed to insert";
+            throw Memory_Service_Exception(ATL_QUEUE_FULL,
+                                           message.str().c_str());
+        } else {
+            message << "Error inserting into Queue";
+            throw Memory_Service_Exception(ATL_QUEUE_INSERT_ERROR,
+                                           message.str().c_str());
         }
     }
 }

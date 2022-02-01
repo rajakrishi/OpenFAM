@@ -58,7 +58,7 @@ class Fam_Memory_Service_Direct : public Fam_Memory_Service {
 
     void dump_profile();
 
-    void fam_aggregation_poc();
+    Fam_Region_Item_Info fam_aggregation_poc(int regionId, size_t size);
 
     void create_region(uint64_t regionId, size_t nbytes);
 
@@ -93,6 +93,11 @@ class Fam_Memory_Service_Direct : public Fam_Memory_Service {
     configFileParams get_config_info(std::string filename);
 
     void init_atomic_queue();
+    void aggregate_indexed_add(uint64_t regionId, uint64_t Offset,
+                               uint64_t opcode, uint64_t elementsize,
+                               uint64_t nElements, uint64_t buffer_location,
+                               uint64_t offset_location);
+
     void get_atomic(uint64_t regionId, uint64_t srcOffset, uint64_t dstOffset,
                     uint64_t nbytes, uint64_t key, uint64_t srcBaseAddr,
                     const char *nodeAddr, uint32_t nodeAddrSize);

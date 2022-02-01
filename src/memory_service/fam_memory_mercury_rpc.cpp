@@ -1,8 +1,9 @@
 #include "memory_service/fam_memory_mercury_rpc.h"
+#include "common/atomic_queue.h"
 
 namespace openfam {
 
-Fam_Memory_Service_Direct *Fam_Memory_Mercury_RPC::memoryService;
+Fam_Memory_Service_Direct *Fam_Memory_Mercury_RPC::memoryService = NULL;
 Fam_Memory_Mercury_RPC::Fam_Memory_Mercury_RPC(const char *name,
                               const char *libfabricPort,
                               const char *libfabricProvider,
@@ -24,23 +25,96 @@ hg_id_t Fam_Memory_Mercury_RPC::register_with_mercury_fam_aggregation(void)
         cout << "HG class is empty hence creating new" << endl;
     }
 
-    tmp = MERCURY_REGISTER(
-        hg_class, "memory_server_aggregation", my_rpc_in_t, my_rpc_out_t, Fam_Memory_Mercury_RPC::fam_memory_server_aggregation);
+    tmp =
+        MERCURY_REGISTER(hg_class, "memory_server_aggregation",
+                         agg_flush_rpc_in_t, agg_flush_rpc_out_t,
+                         Fam_Memory_Mercury_RPC::fam_memory_server_aggregation);
 
     return (tmp);
 }
 
+/* callback triggered upon completion of bulk transfer */
+static hg_return_t my_rpc_handler_bulk_cb(const struct hg_cb_info *info) {
+    std::cout << "Bulk transfer completed" << std::endl;
+    return (hg_return_t)(0);
+}
+
 hg_return_t Fam_Memory_Mercury_RPC::fam_memory_server_aggregation(hg_handle_t handle) {
                 cout << "Entering fam_memory_server_aggregation _ Server Side " << endl;
-                my_rpc_in_t request;
+                agg_flush_rpc_in_t request;
                 hg_return_t ret;
+                hg_bulk_t bulk_buffer;
+                const struct hg_info *hgi;
+                // Fam_Memory_Service_Direct *m1 = get_memory_service();
 
                 ret = HG_Get_input(handle, &request);
                 assert(ret == HG_SUCCESS);
                 my_rpc_out_t response;
+
+                // allocate fam data item for buffer and offset
+                std::cout << "Bulk buffer in server : " << request.bulk_buffer
+                          << std::endl;
+                hgi = HG_Get_info(handle);
+                hg_size_t size =
+                    (hg_size_t)request.elementsize * request.nelements;
+
+                // allocate fam data item for buffer and offset
+                Fam_Region_Item_Info buffer_info;
+                buffer_info = Fam_Memory_Mercury_RPC::memoryService->allocate(
+                    ATOMIC_REGION_ID, size);
+                // create local target buffer for bulk transfer
+                void *buffer =
+                    Fam_Memory_Mercury_RPC::memoryService->get_local_pointer(
+                        ATOMIC_REGION_ID, buffer_info.offset);
+                std::cout << "buffer is at :" << buffer << std::endl;
+
+                ret = HG_Bulk_create(hgi->hg_class, 1, &buffer, &size,
+                                     HG_BULK_WRITE_ONLY, &bulk_buffer);
+
+                std::cout << "Transfering..... " << std::endl;
+                // Do bulk transfer
+                ret = HG_Bulk_transfer(hgi->context, my_rpc_handler_bulk_cb, 0,
+                                       HG_BULK_PULL, hgi->addr,
+                                       request.bulk_buffer, 0, bulk_buffer, 0,
+                                       size, HG_OP_ID_IGNORE);
+                sleep(5);
+
+                hg_bulk_t bulk_offset;
+                // Bulk transfer offset
+                hg_size_t offset_size =
+                    (hg_size_t)sizeof(uint64_t) * request.nelements;
+                Fam_Region_Item_Info offset_info;
+                offset_info = Fam_Memory_Mercury_RPC::memoryService->allocate(
+                    ATOMIC_REGION_ID, offset_size);
+                std::cout << "allocated :" << offset_info.base << " "
+                          << offset_info.offset << std::endl;
+                void *offset =
+                    Fam_Memory_Mercury_RPC::memoryService->get_local_pointer(
+                        ATOMIC_REGION_ID, offset_info.offset);
+
+                ret = HG_Bulk_create(hgi->hg_class, 1, &offset, &offset_size,
+                                     HG_BULK_WRITE_ONLY, &bulk_offset);
+                // Do bulk transfer
+                ret = HG_Bulk_transfer(hgi->context, my_rpc_handler_bulk_cb, 0,
+                                       HG_BULK_PULL, hgi->addr,
+                                       request.bulk_offset, 0, bulk_offset, 0,
+                                       offset_size, HG_OP_ID_IGNORE);
+                sleep(5);
+#if 0
+		std::cout<<"Printing data buffer:"<<std::endl;
+		for(uint32_t i=0;i<size/sizeof(int);i++) {
+          		std::cout<<*((uint64_t*)offset+i)<<" : "<<*((int*)buffer+i)<<"  ";
+		}	
+		std::cout<<std::endl;
+#endif
+
                 //bool result;
                 try {
-                    Fam_Memory_Mercury_RPC::memoryService->fam_aggregation_poc();
+                    Fam_Memory_Mercury_RPC::memoryService
+                        ->aggregate_indexed_add(
+                            request.region_id, request.offset, request.opcode,
+                            request.elementsize, request.nelements,
+                            buffer_info.offset, offset_info.offset);
                 } catch(Fam_Exception &e) {
                         response.errorcode = e.fam_error();
                         response.errormsg = strdup(e.fam_error_msg());
@@ -48,31 +122,6 @@ hg_return_t Fam_Memory_Mercury_RPC::fam_memory_server_aggregation(hg_handle_t ha
                 response.size = 123;
                 response.errorcode = 0;
                 cout << "Exiting from fam_memory_server_aggregation _ Server Side " << endl;
-#if 0
-                Fam_DataItem_Memory dataitem;
-                try {
-                        Fam_Memory_Mercury_RPC::memoryService->metadata_find_dataitem_and_check_permissions((metadata_region_item_op_t)request.op, request.key_dataitem_name, request.key_region_name, request.uid, request.gid, dataitem);
-                } catch(Fam_Exception &e) {
-                        //response.isfound = false;
-                        response.errorcode = e.fam_error();
-                        response.errormsg = strdup(e.fam_error_msg());
-                }
-                response.region_id = dataitem.regionId;
-                response.name = dataitem.name;
-                response.offset = dataitem.offset;
-                response.size = dataitem.size;
-                response.perm = dataitem.perm;
-                response.uid = dataitem.uid;
-                response.gid = dataitem.gid;
-                response.maxkeylen = Fam_Memory_Mercury_RPC::memoryService->metadata_maxkeylen();
-                response.memsrv_id = dataitem.memoryServerId;
-                //response.isfound = result;
-                response.errorcode = 0;
-                response.errormsg = strdup("");
-
-                //cout << "Original::data item name : " << dataitem.name << " Region Id : " << dataitem.regionId << " Offset : " << dataitem.offset << endl;
-                //cout << "Response::data item name : " << response.name << " Region Id : " << response.region_id << " Offset : " << response.offset << endl;
-#endif
                 ret = HG_Respond(handle, NULL, NULL, &response);
                 assert(ret == HG_SUCCESS);
                 (void) ret;

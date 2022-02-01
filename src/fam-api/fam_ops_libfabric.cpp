@@ -105,14 +105,11 @@ Fam_Ops_Libfabric::Fam_Ops_Libfabric(bool source, const char *libfabricProvider,
     //Rishi: Mercury Client code
 
     Fam_Memory_Mercury_RPC *mercuryRPC = new Fam_Memory_Mercury_RPC();
-    hg_engine_init(HG_FALSE, "verbs");
+    hg_engine_init(HG_FALSE, provider);
     my_rpc_id = mercuryRPC->register_with_mercury_fam_aggregation();
-    char *env_val;
-    env_val = getenv("PORT");
-
 
     //const char *svr_addr_string=strdup("ofi+psm2://1a0b02:0");
-    const char *svr_addr_string=strdup(env_val);
+    const char *svr_addr_string = getenv("MERC_SRV_ADDR");
     hg_engine_addr_lookup(svr_addr_string, &svr_addr);
 }
 
@@ -543,6 +540,77 @@ void Fam_Ops_Libfabric::fam_queue_operation(FAM_QUEUE_OP op,
 }
 
 void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
+    std::cout << __FILE__ << " " << __LINE__ << std::endl;
+    queue_descriptor *qd;
+    request_buffer *rbuf;
+    qd = (queue_descriptor *)descriptor->get_queue_descriptor();
+    if (qd == NULL) {
+        return;
+    } else {
+        std::cout << "Flushing, Queue found :" << qd << " " << qd->op << " "
+                  << qd->max_elements << " " << qd->elementsize << std::endl;
+    }
+    rbuf = qd->rq[0];
+    std::cout << "Found buffer: " << rbuf->nElements << std::endl;
+
+    cout << "My RPC ID: " << my_rpc_id << endl;
+    // TODO: Add Bulk transfer handles in request
+    // Create bulk transfer handle 1 for buffer
+
+    // Create bulk transfer handle 2
+    //
+    ostringstream message;
+    Merc_RPC_State *rpcState = new Merc_RPC_State();
+    agg_flush_rpc_in_t req;
+    req.region_id = descriptor->get_global_descriptor().regionId;
+    req.offset = descriptor->get_global_descriptor().offset;
+    req.opcode = 1001;
+    req.elementsize = qd->elementsize;
+    req.nelements = rbuf->nElements;
+    rpcState->done = false;
+    rpcState->doneCond = PTHREAD_COND_INITIALIZER;
+    rpcState->doneMutex = PTHREAD_MUTEX_INITIALIZER;
+
+    cout << " 2. My RPC ID: " << my_rpc_id << endl;
+    hg_handle_t my_handle;
+    hg_engine_create_handle(svr_addr, my_rpc_id, &my_handle);
+
+    /* register buffer for rdma/bulk access by server */
+    const struct hg_info *hgi = HG_Get_info(my_handle);
+    hg_size_t size = (hg_size_t)(int)qd->elementsize * (int)rbuf->nElements;
+    int ret = HG_Bulk_create(hgi->hg_class, 1, &rbuf->buffer, &size,
+                             HG_BULK_READ_ONLY, &req.bulk_buffer);
+
+    /* register offset for rdma/bulk access by server */
+    hg_size_t offset_size =
+        (hg_size_t)(int)sizeof(uint64_t) * (int)rbuf->nElements;
+    ret = HG_Bulk_create(hgi->hg_class, 1, (void **)&rbuf->elementIndex,
+                         &offset_size, HG_BULK_READ_ONLY, &req.bulk_offset);
+
+    cout << " 3. My RPC ID: " << my_rpc_id << " " << req.bulk_buffer << endl;
+    ret = HG_Forward(my_handle, aggregate_cb, rpcState, &req);
+    cout << "Return from HG_Forward : " << ret << std::endl;
+    assert(ret == 0);
+    (void)ret;
+
+    cout << " 4. My RPC ID: " << my_rpc_id << endl;
+    pthread_mutex_lock(&rpcState->doneMutex);
+    while (!rpcState->done)
+        pthread_cond_wait(&rpcState->doneCond, &rpcState->doneMutex);
+    pthread_mutex_unlock(&rpcState->doneMutex);
+    cout << "Call done from client... Exiting " << endl;
+
+    delete rpcState;
+    // TODO: Send data to server
+#if 0
+     for(uint32_t i=0;i<rbuf->nElements;i++) {
+        std::cout<<"Value : "<<*((int*)rbuf->buffer+i)<<" "<<*(rbuf->elementIndex+i)<<endl;
+     }
+#endif
+}
+
+#if 0
+void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
   std::cout << __FILE__ << " " << __LINE__ << std::endl;
   queue_descriptor *qd;
   request_buffer *rbuf;
@@ -587,6 +655,7 @@ void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
      }
 #endif
 }
+#endif
 #if 0
 hg_return_t aggregate_cb(const struct hg_cb_info *info) {
     hg_return_t ret;

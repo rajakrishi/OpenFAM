@@ -17,7 +17,22 @@ typedef struct {
 } Merc_RPC_State;
 
 MERCURY_GEN_PROC(my_rpc_in_t, ((uint64_t)(key_region_id))((uint64_t)(key_dataitem_id))((hg_const_string_t)(key_region_name))((hg_const_string_t)(key_dataitem_name))((uint64_t)(region_id))((uint64_t)(offset))((uint32_t)(uid))((uint32_t)(gid))((uint64_t)(perm))((uint64_t)(size))((uint32_t)(user_policy))((uint64_t)(memsrv_id))((int32_t)(op)))
-MERCURY_GEN_PROC(my_rpc_out_t, ((uint64_t)(region_id))((hg_const_string_t)(name))((uint64_t)(offset))((uint32_t)(uid))((uint32_t)(gid))((uint64_t)(perm))((uint64_t)(size))((uint64_t)(maxkeylen))((hg_bool_t)(isfound))((int32_t)(errorcode))((hg_const_string_t)(errormsg))((uint64_t)(memsrv_id)));
+MERCURY_GEN_PROC(
+    my_rpc_out_t,
+    ((uint64_t)(region_id))((hg_const_string_t)(name))((uint64_t)(offset))(
+        (uint32_t)(uid))((uint32_t)(gid))((uint64_t)(perm))((uint64_t)(size))(
+        (uint64_t)(maxkeylen))((hg_bool_t)(isfound))((int32_t)(errorcode))(
+        (hg_const_string_t)(errormsg))((uint64_t)(memsrv_id)))
+MERCURY_GEN_PROC(agg_flush_rpc_in_t,
+                 ((uint64_t)(region_id))((uint64_t)(offset))((uint32_t)(
+                     opcode))((uint64_t)(elementsize))((uint64_t)(nelements))(
+                     (hg_bulk_t)(bulk_buffer))((hg_bulk_t)(bulk_offset)))
+MERCURY_GEN_PROC(
+    agg_flush_rpc_out_t,
+    ((uint64_t)(region_id))((hg_const_string_t)(name))((uint64_t)(offset))(
+        (uint32_t)(uid))((uint32_t)(gid))((uint64_t)(perm))((uint64_t)(size))(
+        (uint64_t)(maxkeylen))((hg_bool_t)(isfound))((int32_t)(errorcode))(
+        (hg_const_string_t)(errormsg))((uint64_t)(memsrv_id)));
 
 class Fam_Memory_Mercury_RPC {
     public:

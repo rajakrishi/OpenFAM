@@ -134,10 +134,12 @@ int main(int argc, char *argv[]) {
 
     memoryService = NULL;
     try {
-        memoryMercServer = new Fam_Memory_Mercury_RPC();
+        memoryMercServer =
+            new Fam_Memory_Mercury_RPC(name, libfabricPort, provider, fam_path);
         direct = memoryMercServer->get_memory_service();
-        cout << "name : " << name << " port : " << rpcPort << endl;
-        hg_engine_init(NA_TRUE, "verbs");
+        cout << "name : " << name << " port : " << rpcPort << " " << direct
+             << endl;
+        hg_engine_init(NA_TRUE, provider);
         hg_engine_print_self_addr();
         memoryMercServer->register_with_mercury_fam_aggregation();
 

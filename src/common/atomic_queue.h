@@ -54,10 +54,11 @@ enum flag {
     ATOMIC_SCATTER_INDEX = 8,
     ATOMIC_GATHER_STRIDE = 16,
     ATOMIC_GATHER_INDEX = 32,
-    ATOMIC_WRITE_IN_PROGRESS = 64,
-    ATOMIC_WRITE_COMPLETED = 128,
-    ATOMIC_BUFFER_ALLOCATED = 256,
-    ATOMIC_CONTAIN_DATA = 512,
+    INDEXED_ADD = 64,
+    ATOMIC_WRITE_IN_PROGRESS = 128,
+    ATOMIC_WRITE_COMPLETED = 256,
+    ATOMIC_BUFFER_ALLOCATED = 512,
+    ATOMIC_CONTAIN_DATA = 1024,
 };
 /*
  * Atomic request structure
@@ -100,6 +101,13 @@ typedef struct atomicMsg {
             uint64_t offsetIndex;
             uint64_t inElements;
             uint64_t ielementSize;
+        };
+        // indexed add
+        struct {
+            uint64_t iaElements;
+            uint64_t iaelementSize;
+            uint64_t iaoffsetLocation;
+            uint64_t iabufferLocation;
         };
     };
 } atomicMsg;

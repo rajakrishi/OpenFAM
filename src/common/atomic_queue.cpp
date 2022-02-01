@@ -470,7 +470,7 @@ void *process_queue(void *arg) {
     uint64_t *indexArr = NULL;
     Memserver_Allocator *allocator = lcTInfo->allocator;
     fi_addr_t fiAddr = 0, clientAddr;
-    char *remoteAddr;
+    char *remoteAddr = NULL;
     std::map<fi_addr_t, fi_addr_t>::iterator it;
 
     // Recover the incomplete writes if any
@@ -505,19 +505,20 @@ void *process_queue(void *arg) {
             ret = MAPERROR;
         }
         msgPointer = (atomicMsg *)localPointer;
-        remoteAddr = (char *)calloc(1, msgPointer->nodeAddrSize);
-        memcpy(remoteAddr, msgPointer->nodeAddr, msgPointer->nodeAddrSize);
-        clientAddr = *(fi_addr_t *)remoteAddr;
-        pthread_rwlock_rdlock(&fiAddrLock);
-        it = fiAddrMap.find(clientAddr);
-        pthread_rwlock_unlock(&fiAddrLock);
-        if (it == fiAddrMap.end()) {
-           pthread_rwlock_wrlock(&fiAddrLock);
-           it = fiAddrMap.find(clientAddr);
+        if ((msgPointer->flag & 0x7F) != INDEXED_ADD) {
+            remoteAddr = (char *)calloc(1, msgPointer->nodeAddrSize);
+            memcpy(remoteAddr, msgPointer->nodeAddr, msgPointer->nodeAddrSize);
+            clientAddr = *(fi_addr_t *)remoteAddr;
+            pthread_rwlock_rdlock(&fiAddrLock);
+            it = fiAddrMap.find(clientAddr);
+            pthread_rwlock_unlock(&fiAddrLock);
             if (it == fiAddrMap.end()) {
-                std::vector<fi_addr_t> fiAddrV;
-                if (fabric_insert_av(remoteAddr, famOpsLibfabricQ->get_av(),
-                        &fiAddrV) == -1) {
+                pthread_rwlock_wrlock(&fiAddrLock);
+                it = fiAddrMap.find(clientAddr);
+                if (it == fiAddrMap.end()) {
+                    std::vector<fi_addr_t> fiAddrV;
+                    if (fabric_insert_av(remoteAddr, famOpsLibfabricQ->get_av(),
+                                         &fiAddrV) == -1) {
                         ret = AVINSERTERROR;
                         cout << "AV insert error, Remote Address " << remoteAddr
                              << endl;
@@ -535,7 +536,10 @@ void *process_queue(void *arg) {
             }
         } else
             fiAddr = it->second;
-        uint64_t function = msgPointer->flag & 0x3F;
+        } else
+            cout << "Indexed add detected " << std::endl;
+
+        uint64_t function = msgPointer->flag & 0x7F;
         switch (function) {
         case ATOMIC_READ: { // Read function
             try {
@@ -1081,7 +1085,40 @@ void *process_queue(void *arg) {
             if (bufferPtr)
                 free(bufferPtr);
         } break;
+        case INDEXED_ADD: {
+            std::cout << "Performing the indexed add,"
+                      << msgPointer->dstDataGdesc.regionId << " "
+                      << msgPointer->dstDataGdesc.offset << " "
+                      << msgPointer->iaElements << " "
+                      << msgPointer->iaelementSize << " "
+                      << msgPointer->iaoffsetLocation << " "
+                      << msgPointer->iabufferLocation << std::endl;
+            // Get the localpointer corresponding to the data item
+            void *buffer = allocator->get_local_pointer(
+                ATOMIC_REGION_ID, msgPointer->iabufferLocation);
+            void *offset = allocator->get_local_pointer(
+                ATOMIC_REGION_ID, msgPointer->iaoffsetLocation);
+            void *data =
+                allocator->get_local_pointer(msgPointer->dstDataGdesc.regionId,
+                                             msgPointer->dstDataGdesc.offset);
+            for (uint64_t i = 0; i < (msgPointer->iaElements); i++) {
+                int cur_val = *((char *)buffer + i * msgPointer->iaelementSize);
+                uint64_t cur_off = *((uint64_t *)offset + i);
+                *(int *)((char *)data +
+                         (cur_off * msgPointer->iaelementSize)) += cur_val;
+#if 0
+			std::cout<<cur_off<<" "<<cur_val<<" "<<*(int*)((char*)data+(cur_off*msgPointer->iaelementSize))<<std::endl;
+#endif
+            }
+            for (uint64_t i = 0; i < 11; i++) {
+                std::cout << *(int *)((char *)data +
+                                      i * msgPointer->iaelementSize)
+                          << " ";
+            }
+            std::cout << std::endl;
 
+            // Perform addition
+        }
         default:
             break;
         }
