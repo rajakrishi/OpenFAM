@@ -105,10 +105,14 @@ Fam_Ops_Libfabric::Fam_Ops_Libfabric(bool source, const char *libfabricProvider,
     //Rishi: Mercury Client code
 
     Fam_Memory_Mercury_RPC *mercuryRPC = new Fam_Memory_Mercury_RPC();
-    hg_engine_init(HG_FALSE, "psm2");
-
+    hg_engine_init(HG_FALSE, "verbs");
     my_rpc_id = mercuryRPC->register_with_mercury_fam_aggregation();
-    const char *svr_addr_string=strdup("ofi+psm2://1a0b02:0");
+    char *env_val;
+    env_val = getenv("PORT");
+
+
+    //const char *svr_addr_string=strdup("ofi+psm2://1a0b02:0");
+    const char *svr_addr_string=strdup(env_val);
     hg_engine_addr_lookup(svr_addr_string, &svr_addr);
 }
 

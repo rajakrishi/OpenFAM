@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
         memoryMercServer = new Fam_Memory_Mercury_RPC();
         direct = memoryMercServer->get_memory_service();
         cout << "name : " << name << " port : " << rpcPort << endl;
-        hg_engine_init(NA_TRUE, "psm2");
+        hg_engine_init(NA_TRUE, "verbs");
         hg_engine_print_self_addr();
         memoryMercServer->register_with_mercury_fam_aggregation();
 

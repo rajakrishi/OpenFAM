@@ -76,7 +76,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11 -pthread")
 set(CMAKE_CXX_FLAGS
         "${CMAKE_CXX_FLAGS} -Wall -W -Wextra -Wredundant-decls -Wunused -Wunused-macros -Wno-unused-parameter -Wcast-align -Wwrite-strings -Wmissing-field-initializers -Wendif-labels -Winit-self -Wlogical-op -Wpacked -Wstack-protector -Wformat=2 -Wswitch-enum -Wstrict-overflow=5 -Wpointer-arith -Wnormalized=nfc -Wno-long-long -Wconversion -Wunreachable-code")
 # Convert all warnings to errors
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 
 
 #
@@ -116,9 +116,13 @@ include_directories(${PROJECT_SOURCE_DIR}/src/pmi) # private headers (src)
 # library directories
 #
 link_directories(${PROJECT_SOURCE_DIR}/third-party/build/lib) # third-party libraries
-include_directories(/home/rajakr/2022/install/include)
-link_directories(/home/rajakr/2022/install/lib)
-link_directories(/home/rajakr/2022/install/bin)
+//include_directories(/home/rajakr/2022/install/include)
+//link_directories(/home/rajakr/2022/install/lib)
+//link_directories(/home/rajakr/2022/install/bin)
+include_directories(/nfs/rishi/mercury_old/install/include)
+link_directories(/nfs/rishi/mercury_old/install/lib)
+link_directories(/nfs/rishi/mercury_old/build/bin)
+
 
 #
 # default system include and link directories
