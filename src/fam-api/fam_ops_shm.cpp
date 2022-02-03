@@ -2272,6 +2272,13 @@ void Fam_Ops_SHM::fam_queue_operation(FAM_QUEUE_OP op, Fam_Descriptor *descripto
                               int32_t value, uint64_t  elementIndex) {
      return;
 }
+void Fam_Ops_SHM::fam_queue_operation(FAM_QUEUE_OP op, void *local,
+                                      Fam_Descriptor *descriptor,
+                                      uint64_t nElements,
+                                      uint64_t *elementIndex,
+                                      uint64_t elementSize) {
+    return;
+}
 void Fam_Ops_SHM::fam_aggregate_flush(Fam_Descriptor *descriptor) {
      return;
 }

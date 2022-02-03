@@ -47,8 +47,9 @@ void fam_extras::fam_queue_operation(FAM_QUEUE_OP op, void *local,
                                      Fam_Descriptor *descriptor,
                                      uint64_t nElements, uint64_t *elementIndex,
                                      uint64_t elementSize) {
-  // std::cout<<"fam_queue_operation SCATTER "<<std::endl;
-  myfam->myprint();
+    // std::cout<<"fam_queue_operation INDEXED ADD "<<std::endl;
+    myfam->fam_queue_operation(op, local, descriptor, nElements, elementIndex,
+                               elementSize);
 #if 0
         fam::Impl_ *famImpl_ = myfam->pimpl_;
         famImpl_->myprint();

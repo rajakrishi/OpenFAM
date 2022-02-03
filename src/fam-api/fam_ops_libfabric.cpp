@@ -539,6 +539,56 @@ void Fam_Ops_Libfabric::fam_queue_operation(FAM_QUEUE_OP op,
   *(rbuf->elementIndex + buffer_index) = elementIndex;
 }
 
+void Fam_Ops_Libfabric::fam_queue_operation(FAM_QUEUE_OP op, void *local,
+                                            Fam_Descriptor *descriptor,
+                                            uint64_t nElements,
+                                            uint64_t *elementIndex,
+                                            uint64_t elementSize) {
+    queue_descriptor *qd;
+    request_buffer *rbuf;
+
+    qd = (queue_descriptor *)descriptor->get_queue_descriptor();
+    if (qd == NULL) {
+        //
+        // TODO: You need mutex here. As of now we have to make
+        // sure concurrent access will not happen
+        //
+        // Queue not present, create the queue
+        qd = new queue_descriptor();
+        qd->op = op;
+        qd->max_elements = 131072 * 1024;
+        qd->elementsize = sizeof(int32_t);
+
+        // TODO: Initialize rq buffer
+        rbuf = new request_buffer();
+        rbuf->buffer = new char[qd->max_elements * sizeof(int32_t)];
+        rbuf->elementIndex = new uint64_t[qd->max_elements];
+        rbuf->nElements = 0;
+        qd->rq[0] = rbuf;
+        descriptor->set_queue_descriptor(qd);
+        // TODO: Give up lock
+    }
+
+    // TODO: get memory server id from request
+    // Now assuming only one memory server
+    // TODO: Check if rq[id] is NULL, then initialize
+    rbuf = qd->rq[0];
+    if (rbuf->nElements + nElements >= qd->max_elements) {
+        std::cout << "Queue full" << std::endl;
+        THROW_ERRNO_MSG(Fam_Datapath_Exception, get_fam_error(1), "Queue Full");
+    }
+    // TODO: Use atomic adds
+    // uint64_t buffer_index = rbuf->nElements.fetch_add(1);
+    char *value = (char *)local;
+    for (uint64_t i = 0; i < nElements; i++) {
+        uint64_t buffer_index = rbuf->nElements.fetch_add(1);
+        *((int *)rbuf->buffer + buffer_index) = *(value + i * elementSize);
+        *(rbuf->elementIndex + buffer_index) = *(elementIndex + i);
+        // std::cout<<i<<" "<<*(value + i*elementSize)<<" "<<*(elementIndex +
+        // i);
+    }
+}
+
 void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
     std::cout << __FILE__ << " " << __LINE__ << std::endl;
     queue_descriptor *qd;

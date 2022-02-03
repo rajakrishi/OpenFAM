@@ -62,28 +62,17 @@ void *thr_fam_queue_op(void *arg) {
   // fam_queue_op loop
   try {
     for (uint64_t i = 0; i < iterations; i++) {
-      famext->fam_queue_operation(OP_PUT, descriptor, 1,
-                                  1);
-      famext->fam_queue_operation(OP_PUT, descriptor, 2,
-                                  2);
-      famext->fam_queue_operation(OP_PUT, descriptor, 3,
-                                  3);
-      famext->fam_queue_operation(OP_PUT, descriptor, 4,
-                                 4);
-      famext->fam_queue_operation(OP_PUT, descriptor, 5,
-                                  5);
-      famext->fam_queue_operation(OP_PUT, descriptor, 6,
-                                  6);
-      famext->fam_queue_operation(OP_PUT, descriptor, 7,
-                                  7);
-      famext->fam_queue_operation(OP_PUT, descriptor, 8,
-                                  8);
-      famext->fam_queue_operation(OP_PUT, descriptor, 9,
-                                  9);
-      famext->fam_queue_operation(OP_PUT, descriptor, 10,
-                                  10);
-      famext->fam_queue_operation(OP_PUT, descriptor, 11,
-                                  11);
+        famext->fam_queue_operation(OP_ADD, descriptor, 1, 1);
+        famext->fam_queue_operation(OP_ADD, descriptor, 2, 2);
+        famext->fam_queue_operation(OP_ADD, descriptor, 3, 3);
+        famext->fam_queue_operation(OP_ADD, descriptor, 4, 4);
+        famext->fam_queue_operation(OP_ADD, descriptor, 5, 5);
+        famext->fam_queue_operation(OP_ADD, descriptor, 6, 6);
+        famext->fam_queue_operation(OP_ADD, descriptor, 7, 7);
+        famext->fam_queue_operation(OP_ADD, descriptor, 8, 8);
+        famext->fam_queue_operation(OP_ADD, descriptor, 9, 9);
+        famext->fam_queue_operation(OP_ADD, descriptor, 10, 10);
+        famext->fam_queue_operation(OP_ADD, descriptor, 11, 11);
     }
   }
   catch (Fam_Exception &e) {
@@ -155,7 +144,7 @@ int main(int argc, char **argv) {
     // fam_queue_op here
     // int *local = (int *)malloc(10 * sizeof(int));
     fam_extras *famext = new fam_extras(myFam);
-    famext->fam_queue_operation(OP_PUT, descriptor, 9, 9);
+    famext->fam_queue_operation(OP_ADD, descriptor, 9, 9);
     //myFam->fam_reset_profile();
     ValueInfo *info;
     info = (ValueInfo *)malloc(sizeof(ValueInfo) * NUM_THREADS);

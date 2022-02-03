@@ -338,6 +338,9 @@ class Fam_Ops_Libfabric : public Fam_Ops {
     uint64_t atomic_fetch_xor(Fam_Descriptor *descriptor, uint64_t offset,
                               uint64_t value);
     void fam_queue_operation(FAM_QUEUE_OP op,Fam_Descriptor *descriptor, int32_t value, uint64_t elementIndex);
+    void fam_queue_operation(FAM_QUEUE_OP op, void *local,
+                             Fam_Descriptor *descriptor, uint64_t nElements,
+                             uint64_t *elementIndex, uint64_t elementSize);
     void fam_aggregate_poc(Fam_Descriptor *descriptor);
     void fam_aggregate_flush(Fam_Descriptor *descriptor);
     /**

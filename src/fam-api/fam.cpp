@@ -120,6 +120,9 @@ class fam::Impl_ {
     }
     void myprint() { std::cout<<"Wooohooo!!! Impl class"<<std::endl; }
     void fam_queue_operation(FAM_QUEUE_OP op,Fam_Descriptor *descriptor, int32_t value, uint64_t elementIndex);
+    void fam_queue_operation(FAM_QUEUE_OP op, void *local,
+                             Fam_Descriptor *descriptor, uint64_t nElements,
+                             uint64_t *elementIndex, uint64_t elementSize);
     void fam_aggregate_flush(Fam_Descriptor *descriptor);
 
     void fam_aggregate_poc(Fam_Descriptor *descriptor);
@@ -3901,6 +3904,29 @@ void fam::Impl_::fam_queue_operation(FAM_QUEUE_OP op, Fam_Descriptor *descriptor
   return;
 }
 
+void fam::Impl_::fam_queue_operation(FAM_QUEUE_OP op, void *local,
+                                     Fam_Descriptor *descriptor,
+                                     uint64_t nElements, uint64_t *elementIndex,
+                                     uint64_t elementSize) {
+    FAM_CNTR_INC_API(fam_queue_operation);
+    FAM_PROFILE_START_ALLOCATOR(fam_and);
+    if (descriptor == NULL) {
+        THROW_ERR_MSG(Fam_InvalidOption_Exception, "Invalid Options");
+    }
+
+    int ret = validate_item(descriptor);
+    // int ret = 0;
+    FAM_PROFILE_END_ALLOCATOR(fam_queue_operation);
+
+    FAM_PROFILE_START_OPS(fam_queue_operation);
+    if (ret == 0) {
+        famOps->fam_queue_operation(op, local, descriptor, nElements,
+                                    elementIndex, elementSize);
+    }
+    FAM_PROFILE_END_OPS(fam_queue_operation);
+    return;
+}
+
 void fam::Impl_::fam_aggregate_flush(Fam_Descriptor *descriptor) 
 {
     std::ostringstream message;
@@ -5405,12 +5431,23 @@ void fam::fam_reset_profile() {
 void fam::myprint() { cout << "In fam myprint"<<std::endl; }
 void fam::fam_queue_operation(FAM_QUEUE_OP op, Fam_Descriptor *descriptor,
                               int32_t value, uint64_t elementIndex) {
-     std::cout<<"Queing operation in FAM"<<std::endl;
+    // std::cout<<"Queing operation in FAM"<<std::endl;
     TRY_CATCH_BEGIN
     pimpl_->fam_queue_operation(op,descriptor,value,elementIndex);
     RETURN_WITH_FAM_EXCEPTION
 
 }
+
+void fam::fam_queue_operation(FAM_QUEUE_OP op, void *local,
+                              Fam_Descriptor *descriptor, uint64_t nElements,
+                              uint64_t *elementIndex, uint64_t elementSize) {
+    // std::cout<<"Queing operation in FAM"<<std::endl;
+    TRY_CATCH_BEGIN
+    pimpl_->fam_queue_operation(op, local, descriptor, nElements, elementIndex,
+                                elementSize);
+    RETURN_WITH_FAM_EXCEPTION
+}
+
 void fam::fam_aggregate_flush(Fam_Descriptor *descriptor) {
      std::cout<<"Queing operation in FAM"<<std::endl;
     TRY_CATCH_BEGIN

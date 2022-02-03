@@ -1162,6 +1162,9 @@ class fam {
     void fam_aggregate_poc(Fam_Descriptor *descriptor);
     void myprint();
     void fam_queue_operation(FAM_QUEUE_OP op,Fam_Descriptor *descriptor, int32_t value, uint64_t elementIndex);
+    void fam_queue_operation(FAM_QUEUE_OP op, void *local,
+                             Fam_Descriptor *descriptor, uint64_t nElements,
+                             uint64_t *elementIndex, uint64_t elementSize);
     void fam_aggregate_flush(Fam_Descriptor *descriptor);
 
   private:
