@@ -83,7 +83,7 @@ typedef struct {
 // Each memory server will have seperate buffer
 typedef struct {
   FAM_QUEUE_OP op;
-  int max_elements;
+  uint64_t max_elements;
   int elementsize;
   request_buffer *rq[MAX_MEMORY_SERVER];
 } queue_descriptor;

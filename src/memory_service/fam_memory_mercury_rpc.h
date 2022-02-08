@@ -1,8 +1,9 @@
 #ifndef FAM_MEMORY_MERCURY_RPC_H
 #define FAM_MEMORY_MERCURY_RPC_H
 
-#include "memory_service/fam_memory_service_direct.h"
 #include "common/mercury_engine.h"
+#include "memory_service/fam_memory_service_direct.h"
+#include "mercury_thread_pool.h"
 
 namespace openfam {
 
@@ -36,19 +37,24 @@ MERCURY_GEN_PROC(
 
 class Fam_Memory_Mercury_RPC {
     public:
-        Fam_Memory_Mercury_RPC(const char *name,
-                              const char *libfabricPort = NULL,
-                              const char *libfabricProvider = NULL,
-                              const char *fam_path = NULL,
-                              bool isSharedMemory = false);
-        Fam_Memory_Mercury_RPC() {}
-        ~Fam_Memory_Mercury_RPC() {}
-        hg_id_t register_with_mercury_fam_aggregation();
-        Fam_Memory_Service_Direct *get_memory_service();
-        static hg_return_t fam_memory_server_aggregation(hg_handle_t handle);
+      Fam_Memory_Mercury_RPC(const char *name, hg_thread_pool_t *tp,
+                             const char *libfabricPort = NULL,
+                             const char *libfabricProvider = NULL,
+                             const char *fam_path = NULL,
+                             bool isSharedMemory = false);
+      Fam_Memory_Mercury_RPC() {}
+      ~Fam_Memory_Mercury_RPC() {}
+      hg_id_t
+      register_with_mercury_fam_aggregation(hg_class_t *hg_class = NULL);
+      hg_id_t register_with_mercury_fam_aggregation_nowrapper();
+      Fam_Memory_Service_Direct *get_memory_service();
+      static hg_return_t fam_memory_server_aggregation(hg_handle_t handle);
+      static hg_return_t
+      fam_memory_server_aggregation_wrapper(hg_handle_t handle);
 
     private:
         static Fam_Memory_Service_Direct *memoryService;
+        static hg_thread_pool_t *thread_pool;
 };
 }
 #endif

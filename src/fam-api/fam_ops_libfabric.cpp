@@ -462,16 +462,15 @@ hg_return_t aggregate_cb(const struct hg_cb_info *info) {
     Merc_RPC_State *rpcState = (Merc_RPC_State *)info->arg;
     my_rpc_out_t resp;
 
-
+    // cout << "In callback: " << info->ret<< endl;
     assert(info->ret == HG_SUCCESS);
-    cout << "In callback: " << endl;
 
     ret = HG_Get_output(info->info.forward.handle, &resp);
     assert(ret == 0);
     (void) ret;
 
     if(!resp.errorcode) {
-        cout << "resp.size= " << resp.size << endl;
+        // cout << "resp.size= " << resp.size << endl;
         pthread_mutex_lock(&rpcState->doneMutex);
         rpcState->done = true;
         pthread_cond_signal(&rpcState->doneCond);
@@ -574,7 +573,7 @@ void Fam_Ops_Libfabric::fam_queue_operation(FAM_QUEUE_OP op, void *local,
     // TODO: Check if rq[id] is NULL, then initialize
     rbuf = qd->rq[0];
     if (rbuf->nElements + nElements >= qd->max_elements) {
-        std::cout << "Queue full" << std::endl;
+        // std::cout << "Queue full" << std::endl;
         THROW_ERRNO_MSG(Fam_Datapath_Exception, get_fam_error(1), "Queue Full");
     }
     // TODO: Use atomic adds
@@ -590,20 +589,20 @@ void Fam_Ops_Libfabric::fam_queue_operation(FAM_QUEUE_OP op, void *local,
 }
 
 void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
-    std::cout << __FILE__ << " " << __LINE__ << std::endl;
+    // std::cout << __FILE__ << " " << __LINE__ << std::endl;
     queue_descriptor *qd;
     request_buffer *rbuf;
     qd = (queue_descriptor *)descriptor->get_queue_descriptor();
     if (qd == NULL) {
         return;
     } else {
-        std::cout << "Flushing, Queue found :" << qd << " " << qd->op << " "
-                  << qd->max_elements << " " << qd->elementsize << std::endl;
+        // std::cout << "Flushing, Queue found :" << qd << " " << qd->op << " "
+        //          << qd->max_elements << " " << qd->elementsize << std::endl;
     }
     rbuf = qd->rq[0];
-    std::cout << "Found buffer: " << rbuf->nElements << std::endl;
+    // std::cout << "Found buffer: " << rbuf->nElements << std::endl;
 
-    cout << "My RPC ID: " << my_rpc_id << endl;
+    // cout << "My RPC ID: " << my_rpc_id << endl;
     // TODO: Add Bulk transfer handles in request
     // Create bulk transfer handle 1 for buffer
 
@@ -621,7 +620,7 @@ void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
     rpcState->doneCond = PTHREAD_COND_INITIALIZER;
     rpcState->doneMutex = PTHREAD_MUTEX_INITIALIZER;
 
-    cout << " 2. My RPC ID: " << my_rpc_id << endl;
+    // cout << " 2. My RPC ID: " << my_rpc_id << endl;
     hg_handle_t my_handle;
     hg_engine_create_handle(svr_addr, my_rpc_id, &my_handle);
 
@@ -637,18 +636,18 @@ void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
     ret = HG_Bulk_create(hgi->hg_class, 1, (void **)&rbuf->elementIndex,
                          &offset_size, HG_BULK_READ_ONLY, &req.bulk_offset);
 
-    cout << " 3. My RPC ID: " << my_rpc_id << " " << req.bulk_buffer << endl;
+    // cout << " 3. My RPC ID: " << my_rpc_id << " " << req.bulk_buffer << endl;
     ret = HG_Forward(my_handle, aggregate_cb, rpcState, &req);
-    cout << "Return from HG_Forward : " << ret << std::endl;
+    // cout << "Return from HG_Forward : " << ret << std::endl;
     assert(ret == 0);
     (void)ret;
 
-    cout << " 4. My RPC ID: " << my_rpc_id << endl;
+    // cout << " 4. My RPC ID: " << my_rpc_id << endl;
     pthread_mutex_lock(&rpcState->doneMutex);
     while (!rpcState->done)
         pthread_cond_wait(&rpcState->doneCond, &rpcState->doneMutex);
     pthread_mutex_unlock(&rpcState->doneMutex);
-    cout << "Call done from client... Exiting " << endl;
+    // cout << "Call done from client... Exiting " << endl;
 
     delete rpcState;
     // TODO: Send data to server

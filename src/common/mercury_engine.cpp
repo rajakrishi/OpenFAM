@@ -39,6 +39,9 @@ hg_engine_init(hg_bool_t listen, const char *local_addr)
     hg_class = HG_Init(local_addr, listen);
     assert(hg_class);
 
+    // hg_thread_pool_t *thread_pool;
+    // hg_thread_pool_init(100, &thread_pool);
+
     hg_context = HG_Context_create(hg_class);
     assert(hg_context);
 

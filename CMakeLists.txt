@@ -74,9 +74,9 @@ message(STATUS "====================")
 # of gRPC generated files
 set(CMAKE_CXX_FLAGS "-std=c++11 -pthread")
 set(CMAKE_CXX_FLAGS
-        "${CMAKE_CXX_FLAGS} -Wall -W -Wextra -Wredundant-decls -Wunused -Wunused-macros -Wno-unused-parameter -Wcast-align -Wwrite-strings -Wmissing-field-initializers -Wendif-labels -Winit-self -Wlogical-op -Wpacked -Wstack-protector -Wformat=2 -Wswitch-enum -Wstrict-overflow=5 -Wpointer-arith -Wnormalized=nfc -Wno-long-long -Wconversion -Wunreachable-code")
+	"${CMAKE_CXX_FLAGS} -Wall -W -Wextra -Wredundant-decls -Wunused -Wunused-macros -Wno-unused-parameter -Wcast-align -Wwrite-strings -Wmissing-field-initializers -Wendif-labels -Winit-self -Wlogical-op -Wpacked -Wstack-protector -Wformat=2 -Wswitch-enum -Wstrict-overflow=5 -Wpointer-arith -Wnormalized=nfc -Wno-long-long -Wconversion -Wunreachable-code -fpermissive -fopenmp -fPIC")
 # Convert all warnings to errors
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 
 
 #
@@ -112,10 +112,14 @@ include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/third-party/build/include) # th
 include_directories(${PROJECT_SOURCE_DIR}/test/util) # utility functions
 include_directories(${PROJECT_SOURCE_DIR}/src) # private headers (src)
 include_directories(${PROJECT_SOURCE_DIR}/src/pmi) # private headers (src)
+include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/third-party/mercury/Testing)
+include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/third-party/mercury/build/Testing)
+include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/third-party/mercury/Testing/na)
 #
 # library directories
 #
 link_directories(${PROJECT_SOURCE_DIR}/third-party/build/lib) # third-party libraries
+link_directories(${PROJECT_SOURCE_DIR}/third-party/mercury/build/bin)
 #include_directories(/home/rajakr/2022/install/include)
 #link_directories(/home/rajakr/2022/install/lib)
 #link_directories(/home/rajakr/2022/install/bin)

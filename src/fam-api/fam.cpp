@@ -5449,7 +5449,7 @@ void fam::fam_queue_operation(FAM_QUEUE_OP op, void *local,
 }
 
 void fam::fam_aggregate_flush(Fam_Descriptor *descriptor) {
-     std::cout<<"Queing operation in FAM"<<std::endl;
+    // std::cout<<"Queing operation in FAM"<<std::endl;
     TRY_CATCH_BEGIN
     pimpl_->fam_aggregate_flush(descriptor);
     RETURN_WITH_FAM_EXCEPTION

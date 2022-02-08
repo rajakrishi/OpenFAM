@@ -563,10 +563,10 @@ Fam_Memory_Service_Direct::fam_aggregation_poc(int regionId, size_t size) {
 void Fam_Memory_Service_Direct::aggregate_indexed_add(
     uint64_t regionId, uint64_t Offset, uint64_t opcode, uint64_t elementsize,
     uint64_t nElements, uint64_t buffer_location, uint64_t offset_location) {
-    std::cout << "aggregate_indexed_add, regionId:" << regionId
-              << " offset:" << Offset << " opcode:" << opcode
-              << " elementsize:" << elementsize << " nElements:" << nElements
-              << std::endl;
+    // std::cout << "aggregate_indexed_add, regionId:" << regionId
+    //          << " offset:" << Offset << " opcode:" << opcode
+    //          << " elementsize:" << elementsize << " nElements:" << nElements
+    //          << std::endl;
     // Copy the code from put_atomic
     ostringstream message;
     string hashStr = "";

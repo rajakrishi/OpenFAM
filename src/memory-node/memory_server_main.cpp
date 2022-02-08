@@ -32,8 +32,11 @@
 #include <signal.h>
 #endif
 
-#include "memory_service/fam_memory_service_server.h"
+#include "common/mercury_server_init.h"
 #include "memory_service/fam_memory_mercury_rpc.h"
+#include "memory_service/fam_memory_service_server.h"
+#include "mercury_thread_pool.h"
+
 #include <iostream>
 using namespace std;
 using namespace metadata;
@@ -43,7 +46,6 @@ using namespace metadata;
 #else
 #define MEMORYSERVER_VERSION "0.0.0"
 #endif
-
 #ifdef COVERAGE
 extern "C" void __gcov_flush();
 void signal_handler(int signum) {
@@ -134,14 +136,41 @@ int main(int argc, char *argv[]) {
 
     memoryService = NULL;
     try {
-        memoryMercServer =
-            new Fam_Memory_Mercury_RPC(name, libfabricPort, provider, fam_path);
+#if 0	
+        hg_engine_init(NA_TRUE, provider);
+	//hg_thread_pool_t *thread_pool;
+	//hg_thread_pool_init(4, &thread_pool);
+        hg_engine_print_self_addr();
+#endif
+        int argc_tmp = 9;
+        char *argv_tmp[50];
+        argv_tmp[0] = argv[0];
+        argv_tmp[1] = (char *)strdup("--threads");
+        argv_tmp[2] = (char *)strdup("8");
+        argv_tmp[7] = (char *)strdup("--busy");
+        argv_tmp[8] = (char *)strdup("-V");
+        argv_tmp[3] = (char *)strdup("-C");
+        argv_tmp[4] = (char *)strdup("4");
+        argv_tmp[5] = (char *)strdup("-p");
+        // argv_tmp[4] = (char*)strdup("ofi+sockets");
+        argv_tmp[6] = (char *)strdup("sockets");
+        /*
+            for(int i=9; i<argc; i++) {
+                argv_tmp[j] = argv[i];
+                j++;
+            } */
+        struct hg_test_info init_info;
+        mercury_server_init(argc_tmp, argv_tmp, init_info);
+        cout << "Mercury server initialized.... : "
+             << init_info.thread_pool->sleeping_worker_count << endl;
+        // hg_engine_print_self_addr();
+        memoryMercServer = new Fam_Memory_Mercury_RPC(
+            name, init_info.thread_pool, libfabricPort, provider, fam_path);
         direct = memoryMercServer->get_memory_service();
         cout << "name : " << name << " port : " << rpcPort << " " << direct
              << endl;
-        hg_engine_init(NA_TRUE, provider);
-        hg_engine_print_self_addr();
-        memoryMercServer->register_with_mercury_fam_aggregation();
+        memoryMercServer->register_with_mercury_fam_aggregation(
+            init_info.hg_class);
 
         memoryService = new Fam_Memory_Service_Server(
             rpcPort, name, libfabricPort, provider, fam_path, direct);

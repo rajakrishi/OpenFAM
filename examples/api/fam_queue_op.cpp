@@ -80,7 +80,8 @@ void *thr_fam_queue_op(void *arg) {
     // ret = -1;
   }
   end = get_my_time();
-  std::cout<<sched_getcpu()<<", Time, "<<(end-start)/(iterations*11)<<std::endl;
+  std::cout << "fam_queue_operation, CPU, " << sched_getcpu() << ", Time, "
+            << (end - start) / (iterations * 11) << std::endl;
   pthread_exit(NULL);
   return NULL;
 }
@@ -164,7 +165,12 @@ int main(int argc, char **argv) {
     for (int i = 0; i < NUM_THREADS; ++i) {
       pthread_join(thr[i], NULL);
     }
+    std::cout << "Completed queue operation, Flushing the data" << std::endl;
+    uint64_t start, end;
+    start = get_my_time();
     famext->fam_aggregate_flush(descriptor);
+    end = get_my_time();
+    std::cout << "Flush time, " << end - start << std::endl;
     // ... subsequent code here
   }
   catch (Fam_Exception &e) {
