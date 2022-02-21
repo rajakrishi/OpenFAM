@@ -111,6 +111,7 @@ Fam_Ops_Libfabric::Fam_Ops_Libfabric(bool source, const char *libfabricProvider,
     //const char *svr_addr_string=strdup("ofi+psm2://1a0b02:0");
     const char *svr_addr_string = getenv("MERC_SRV_ADDR");
     hg_engine_addr_lookup(svr_addr_string, &svr_addr);
+    hg_engine_create_handle(svr_addr, my_rpc_id, &my_handle);
 }
 
 Fam_Ops_Libfabric::Fam_Ops_Libfabric(bool source, const char *libfabricProvider,
@@ -483,7 +484,7 @@ hg_return_t aggregate_cb(const struct hg_cb_info *info) {
         THROW_ERR_MSG(Fam_Datapath_Exception, "aggregate not found");
     }
     HG_Free_output(info->info.forward.handle, &resp);
-    HG_Destroy(info->info.forward.handle);
+    //HG_Destroy(info->info.forward.handle);
     return HG_SUCCESS;
 }
 /*
@@ -590,6 +591,9 @@ void Fam_Ops_Libfabric::fam_queue_operation(FAM_QUEUE_OP op, void *local,
 
 void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
     // std::cout << __FILE__ << " " << __LINE__ << std::endl;
+    if (descriptor==NULL){
+	    return;
+    }
     queue_descriptor *qd;
     request_buffer *rbuf;
     qd = (queue_descriptor *)descriptor->get_queue_descriptor();
@@ -608,21 +612,21 @@ void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
 
     // Create bulk transfer handle 2
     //
-    ostringstream message;
-    Merc_RPC_State *rpcState = new Merc_RPC_State();
+    //ostringstream message;
     agg_flush_rpc_in_t req;
     req.region_id = descriptor->get_global_descriptor().regionId;
     req.offset = descriptor->get_global_descriptor().offset;
     req.opcode = 1001;
     req.elementsize = qd->elementsize;
     req.nelements = rbuf->nElements;
+    (void)req;
+    Merc_RPC_State *rpcState = new Merc_RPC_State();
     rpcState->done = false;
     rpcState->doneCond = PTHREAD_COND_INITIALIZER;
     rpcState->doneMutex = PTHREAD_MUTEX_INITIALIZER;
 
     // cout << " 2. My RPC ID: " << my_rpc_id << endl;
-    hg_handle_t my_handle;
-    hg_engine_create_handle(svr_addr, my_rpc_id, &my_handle);
+    //hg_handle_t my_handle;
 
     /* register buffer for rdma/bulk access by server */
     const struct hg_info *hgi = HG_Get_info(my_handle);
@@ -635,21 +639,30 @@ void Fam_Ops_Libfabric::fam_aggregate_flush(Fam_Descriptor *descriptor) {
         (hg_size_t)(int)sizeof(uint64_t) * (int)rbuf->nElements;
     ret = HG_Bulk_create(hgi->hg_class, 1, (void **)&rbuf->elementIndex,
                          &offset_size, HG_BULK_READ_ONLY, &req.bulk_offset);
+    if (ret !=0 ) {
+        std::cout<<"Return from bulk create : "<<HG_Error_to_string((hg_return_t)ret)<<" "<<offset_size<<" "<<size<<std::endl;
+	if (hgi->hg_class == NULL)
+		std::cout<<"NULL hg_class"<<std::endl;	
+    }
 
+    assert(ret == 0);
     // cout << " 3. My RPC ID: " << my_rpc_id << " " << req.bulk_buffer << endl;
     ret = HG_Forward(my_handle, aggregate_cb, rpcState, &req);
     // cout << "Return from HG_Forward : " << ret << std::endl;
-    assert(ret == 0);
+    //assert(ret == 0);
     (void)ret;
-
     // cout << " 4. My RPC ID: " << my_rpc_id << endl;
     pthread_mutex_lock(&rpcState->doneMutex);
     while (!rpcState->done)
         pthread_cond_wait(&rpcState->doneCond, &rpcState->doneMutex);
     pthread_mutex_unlock(&rpcState->doneMutex);
     // cout << "Call done from client... Exiting " << endl;
+    rbuf->nElements = 0;
 
     delete rpcState;
+    ret = HG_Bulk_free(req.bulk_buffer);
+    ret = HG_Bulk_free(req.bulk_offset);
+    assert(ret == 0);
     // TODO: Send data to server
 #if 0
      for(uint32_t i=0;i<rbuf->nElements;i++) {

@@ -428,6 +428,7 @@ class Fam_Ops_Libfabric : public Fam_Ops {
     pthread_rwlock_t *queue_op_map_lock;
     hg_id_t my_rpc_id;
     hg_addr_t svr_addr;
+    hg_handle_t my_handle;
     std::map<uint64_t, std::pair<void *, size_t>> *memServerAddrs;
     std::map<uint64_t, fi_addr_t> *fiMemsrvMap;
     pthread_rwlock_t fiMemsrvAddrLock;

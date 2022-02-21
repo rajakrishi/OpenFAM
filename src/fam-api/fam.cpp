@@ -610,7 +610,7 @@ void fam::Impl_::fam_reset_profile() {
 #endif
 
 void fam::Impl_::fam_aggregate_poc(Fam_Descriptor *descriptor) {
-    std::ostringstream message;
+    //std::ostringstream message;
     if (descriptor == NULL) {
         THROW_ERR_MSG(Fam_InvalidOption_Exception, "Invalid Options");
     }
@@ -3929,9 +3929,11 @@ void fam::Impl_::fam_queue_operation(FAM_QUEUE_OP op, void *local,
 
 void fam::Impl_::fam_aggregate_flush(Fam_Descriptor *descriptor) 
 {
-    std::ostringstream message;
+    //std::ostringstream message;
     if (descriptor == NULL) {
-        THROW_ERR_MSG(Fam_InvalidOption_Exception, "Invalid Options");
+	    famOps->fam_aggregate_flush(descriptor);
+	    return;
+        //THROW_ERR_MSG(Fam_InvalidOption_Exception, "Invalid Options");
     }
 
     int ret = validate_item(descriptor);

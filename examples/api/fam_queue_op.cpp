@@ -114,7 +114,6 @@ int main(int argc, char **argv) {
     // so we must terminate with the same value
     return -1;
   }
-
   int count = 100;
   // int MAX_VALUE = 1000;
   const int NUM_THREADS_MACRO = 256;
@@ -145,6 +144,7 @@ int main(int argc, char **argv) {
     // fam_queue_op here
     // int *local = (int *)malloc(10 * sizeof(int));
     fam_extras *famext = new fam_extras(myFam);
+  for (int l=0;l<10;l++) {
     famext->fam_queue_operation(OP_ADD, descriptor, 9, 9);
     //myFam->fam_reset_profile();
     ValueInfo *info;
@@ -165,19 +165,21 @@ int main(int argc, char **argv) {
     for (int i = 0; i < NUM_THREADS; ++i) {
       pthread_join(thr[i], NULL);
     }
-    std::cout << "Completed queue operation, Flushing the data" << std::endl;
+    //std::cout << "Completed queue operation, Flushing the data" << std::endl;
+    //famext->fam_queue_operation(OP_ADD, descriptor, 12, 12);
+    famext->fam_aggregate_flush(0);
     uint64_t start, end;
     start = get_my_time();
     famext->fam_aggregate_flush(descriptor);
     end = get_my_time();
     std::cout << "Flush time, " << end - start << std::endl;
+  }
     // ... subsequent code here
   }
   catch (Fam_Exception &e) {
     printf("fam API failed: %d: %s\n", e.fam_error(), e.fam_error_msg());
     ret = -1;
   }
-
   try {
     // we are finished. Destroy the region and everything in it
     myFam->fam_destroy_region(region);
